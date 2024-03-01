@@ -1,0 +1,34 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "run-qemu",
+            "type": "process",
+            "command": "just",
+            "args": [
+                "debug",
+            ],
+
+            // All of these vvvvvvvvv are required to convince VSCode to run this command (`just debug`) and
+            // not wait for it to exit before running gdb (the think in launch.json).
+            "isBackground": true,
+            "problemMatcher": [
+                {
+                  "pattern": [
+                    {
+                      "regexp": ".",
+                      "file": 1,
+                      "location": 2,
+                      "message": 3
+                    }
+                  ],
+                  "background": {
+                    "activeOnStart": true,
+                    "beginsPattern": ".",
+                    "endsPattern": ".",
+                  }
+                }
+              ]
+        }
+    ]
+}
