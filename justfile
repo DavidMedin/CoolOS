@@ -6,7 +6,7 @@ default:
 
 # Use an actual build system (Nix [actually just make]) to build.
 build:
-    nix-build
+    nix-build --repair
 
 debug: build
     #!/usr/bin/env nix-shell

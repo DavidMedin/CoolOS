@@ -1,14 +1,10 @@
+#include "defines.h"
+#include "font.c"
+
 // Use VGA text mode buffer located at 0xB8000 . DONT ACTUALLY! Use UEFI PIXEL BUFFERS!
 
 // A driver that remembers the location of the next character in the VGA buffer and provides a way to add a new character.
-#define u32 unsigned int
-#define i32 int
-#define u16 short unsigned int
-#define i16 short int
-#define u64 unsigned long long int
-#define i64 long long int
-#define u8 char 
-#define i8 char // don't use this
+
 typedef struct {
     u32 total_size; // Total size of everything.
     u32 reserved; // Not for the kernel to touch.
@@ -63,7 +59,7 @@ typedef struct {
     u8 fmbuff_bpp;
     u8 fmbuff_type;
     u8 reserved;
-    u8 color_info_start; // not actual data, use this address for pallet maybe.
+    u8 color_info_start; // not actual data, use this address for palette maybe.
 } FrameBufferInfo;
 
 // =============== Either =======
@@ -103,6 +99,10 @@ u32 base_address = 0; // bad.
 u32 MBI_info[3000]; // Also bad.
 u32 MBI_end = 0;
 
+extern u8* _binary_resources_terminusmod12b_pcf_start;
+extern u8* _binary_resources_terminusmod12b_pcf_end;
+extern u8* _binary_resources_terminusmod12b_pcf_size;
+
 void kernel_main(MBI* mbi) {
     TagHeader* tag_head = ((char*)mbi+sizeof(MBI));
     u32 tag_addr = tag_head;
@@ -138,6 +138,20 @@ void kernel_main(MBI* mbi) {
         align_to((u32)&tag_addr, 8);
         tag_head = (TagHeader*)(tag_addr);
     };
+
+    if(fb_info->fmbuff_type == 0) {
+        // color_info is defined by a indexed palette.
+
+        *(i32*)(fb_info->fmbuff_addr) = 1;
+    }else if(fb_info->fmbuff_type == 1) {
+        // color_info is field position and mask size for each color, red green and blue.
+
+        *(i32*)(fb_info->fmbuff_addr) = -1;
+    }
+
+
+    // font things.
+    PCF_Result font_result = load_font(_binary_resources_terminusmod12b_pcf_start, _binary_resources_terminusmod12b_pcf_size);
 
     int debug_nothing = 2;
 }

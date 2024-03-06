@@ -22,46 +22,6 @@ section .multiboot2
     .tag_tag_types: dd 4 ; this is an array of Boot Information (section 3.6)
     tags.MBI.end:
 
-    ; align 8
-    ; tags.address:
-    ; .tag_type: dw 2
-    ; .tag_flags: dw 1
-    ; .tag_size_val: equ (tags.address.end - tags.address)
-    ; .tag_size: dd .tag_size_val
-    ; .tag_header_addr: dd magic
-    ; .tag_load_addr: dd _start
-    ; .tag_load_end_addr: dd _start.end
-    ; .tag_bss_end_addr: dd stack_top
-    ; tags.address.end:
-    
-    ; align 8
-    ; tags.entry_addr:
-    ; .tag_type: dw 3
-    ; .tag_flags: dw 1
-    ; .tag_size_val: equ (tags.entry_addr.end - tags.entry_addr)
-    ; .tag_size: dd .tag_size_val
-    ; .tag_entry_addr: dd _start
-    ; tags.entry_addr.end:
-
-
-    ; align 8
-    ; tags.entry_addr:
-    ; .tag_type: dw 8 ; i386 entry address tag
-    ; .tag_flags: dw 0
-    ; .tag_size_val: equ (tags.entry_addr.end - tags.entry_addr)
-    ; .tag_size: dd .tag_size_val
-    ; .tag_entry_addr: dd _start
-    ; tags.entry_addr.end:
-
-
-    ; align 8
-    ; tags.flags:
-    ; .tag_type: dw 4 ; console tags (use text, not gui)
-    ; .tag_flags: dw 1
-    ; .tag_size: dd 12
-    ; .console_flags: dd 0
-    ; tags.flags.end:
-
     align 8
     tags.frame:
     .tag_type: dw 5
@@ -79,6 +39,7 @@ section .multiboot2
     .tag_flags: dw 0
     .tag_size: dd 8
 tags.end:
+
 ; This is our 'stack' section. It will be 16 KiB.
 ; BSS is 'Block Ended by Symbol'. Not sure what that means, but
 ; this stack has a symbol at the top and bottom.

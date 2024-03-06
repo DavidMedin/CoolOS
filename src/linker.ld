@@ -12,6 +12,7 @@ SECTIONS {
     /* Read only things */
     .rodata BLOCK(4K) : ALIGN(4K)
     {
+        *(_binary_resources_terminusmod12b_pcf)
         *(.rodata)
     }
 
