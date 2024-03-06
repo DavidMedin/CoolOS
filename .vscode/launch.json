@@ -8,9 +8,10 @@
             "name": "Debug OS",
             "type":"cppdbg",
             "request": "launch",
-            "program": "${workspaceRoot}/myos.bin",
+            "program": "${workspaceRoot}/result/coolos.bin",
             "cwd": "${workspaceRoot}",
             "miDebuggerServerAddress": "localhost:1234",
+            "miDebuggerPath": "/usr/bin/gdb",
             "linux": {
                 "MIMode": "gdb"
             },

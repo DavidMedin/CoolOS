@@ -1,7 +1,9 @@
 {
   lib,
   stdenv,
-  nasm
+  nasm,
+  grub2,
+  libisoburn
 }:
 let
     fs = lib.fileset;
@@ -17,11 +19,15 @@ stdenv.mkDerivation {
     fileset = sourceFiles;
   };
 
-  nativeBuildInputs = [ nasm ];
+  nativeBuildInputs = [ nasm grub2 libisoburn ];
   buildInputs = [ ];
 
+  buildPhase = ''
+  make
+  '';
   postInstall = ''
-    mkdir $out
+    mkdir -p $out
     cp -v coolos.img $out
+    cp -v coolos.bin $out
   '';
 }
