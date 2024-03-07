@@ -99,9 +99,12 @@ u32 base_address = 0; // bad.
 u32 MBI_info[3000]; // Also bad.
 u32 MBI_end = 0;
 
-extern u8* _binary_resources_terminusmod12b_pcf_start;
-extern u8* _binary_resources_terminusmod12b_pcf_end;
-extern u8* _binary_resources_terminusmod12b_pcf_size;
+// These are defined in the linker (.ld) script.
+// I create a object file (.o) from resources/terminusmod12b.pcf in the Makefile, then
+//  write in the linker script (.ld) to put that object file in .data, and make a symbol
+//  right before and after the binray data.
+extern u8 _terminus_font_start;
+extern u8 _terminus_font_end;
 
 void kernel_main(MBI* mbi) {
     TagHeader* tag_head = ((char*)mbi+sizeof(MBI));
@@ -149,9 +152,9 @@ void kernel_main(MBI* mbi) {
         *(i32*)(fb_info->fmbuff_addr) = -1;
     }
 
-
     // font things.
-    PCF_Result font_result = load_font(_binary_resources_terminusmod12b_pcf_start, _binary_resources_terminusmod12b_pcf_size);
+    u32 font_file_size = &_terminus_font_end - &_terminus_font_start;
+    PCF_Result font_result = load_font(&_terminus_font_start, font_file_size);
 
     int debug_nothing = 2;
 }

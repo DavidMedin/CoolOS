@@ -6,9 +6,9 @@ default:
 
 # Use an actual build system (Nix [actually just make]) to build.
 build:
-    nix-build --repair
+    nix-build
 
-debug: build
+debug:
     #!/usr/bin/env nix-shell
     #! nix-shell -i bash
     #! nix-shell -p qemu gdb

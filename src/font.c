@@ -6,8 +6,8 @@
 ; // [table_count]
 
 typedef struct  {
-    i8 header[4];                  /* always "\1fcp" */
-    bei32 table_count;
+    i8 header[4];                  /* always "\1fcp" (0x70636601)*/
+    i32 table_count; // in file, Big Endian.
     
     struct toc_table {
         bei32 type;              /* See below, indicates which table */
@@ -138,13 +138,20 @@ typedef struct {
 
 PCF_Result load_font(void* font_bytes, u32 font_size) {
     PCF font;
-    u32 font_addr = (u32)font_bytes;
+    u32 file_cursor = (u32)font_bytes;
 
     // 01 66 63 70
-    if(*(u32*)font_bytes != 0x70636601) {
+    if(*(u32*)font_bytes != 0x70636601) { // Magic number.
         return (PCF_Result){true, {"The font pointed to by font_bytes is not a PCF!"}};
     }
+    *(u32*)&font.header.header = *(u32*)font_bytes; // write to all 4 bytes at the same time (hopfully).
+    file_cursor += 4; // jump over magic number.
 
+    font.header.table_count = *(u32*)file_cursor;
+    file_cursor += sizeof(u32);
+
+    font.header.table_entries = (struct toc_table*)file_cursor;
+    file_cursor += sizeof(struct toc_table)*font.header.table_count;
     
     PCF_Result result;
     result.is_error = false;

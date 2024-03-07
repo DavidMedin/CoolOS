@@ -1,3 +1,5 @@
+INPUT(terminus_font.o)
+
 ENTRY(_start)
 
 SECTIONS {
@@ -12,7 +14,9 @@ SECTIONS {
     /* Read only things */
     .rodata BLOCK(4K) : ALIGN(4K)
     {
-        *(_binary_resources_terminusmod12b_pcf)
+        _terminus_font_start = .;
+        terminus_font.o
+        _terminus_font_end = .;
         *(.rodata)
     }
 

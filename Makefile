@@ -8,7 +8,7 @@ coolos.img: coolos.bin
 	grub-mkrescue -o coolos.img isodir
 
 coolos.bin: kernel.o boot.o terminus_font.o
-	i686-elf-gcc -m32 -no-pie -ffreestanding -O0 -nostdlib -lgcc  boot.o kernel.o terminus_font.o -T src/linker.ld -o coolos.bin
+	i686-elf-gcc -m32 -no-pie -ffreestanding -O0 -nostdlib -lgcc  boot.o kernel.o -T src/linker.ld -o coolos.bin
 
 kernel.o: src/kernel.c
 	i686-elf-gcc -g -m32 -std=gnu99  -ffreestanding -O0 -Wall -Wextra -c src/kernel.c -o kernel.o
