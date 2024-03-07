@@ -1,6 +1,5 @@
 #include "defines.h"
 #include "strings.c"
-#include "bdf_font.c"
 
 // Use VGA text mode buffer located at 0xB8000 . DONT ACTUALLY! Use UEFI PIXEL BUFFERS!
 

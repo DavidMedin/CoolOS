@@ -2,5 +2,6 @@
     "cmake.configureOnOpen": false,
     "files.associations": {
         "defines.h": "c"
-    }
+    },
+    "nixEnvSelector.nixFile": "${workspaceFolder}/flake.nix"
 }
