@@ -1,5 +1,6 @@
 #include "defines.h"
-#include "font.c"
+#include "strings.c"
+#include "bdf_font.c"
 
 // Use VGA text mode buffer located at 0xB8000 . DONT ACTUALLY! Use UEFI PIXEL BUFFERS!
 
@@ -91,20 +92,27 @@ typedef struct {
     u32 base_address;
 } ImageLoadBaseAddress;
 
-void align_to(u32* input, u32 alignment) {
-    *input += ( (alignment - *input)  % alignment );
-}
+
 
 u32 base_address = 0; // bad.
 u32 MBI_info[3000]; // Also bad.
 u32 MBI_end = 0;
 
+// ===========vvvvvvvvvv
 // These are defined in the linker (.ld) script.
 // I create a object file (.o) from resources/terminusmod12b.pcf in the Makefile, then
 //  write in the linker script (.ld) to put that object file in .data, and make a symbol
 //  right before and after the binray data.
+
+// A PCF Font
 extern u8 _terminus_font_start;
 extern u8 _terminus_font_end;
+
+// A BDF Font
+extern char _cherry_font_start[];
+extern char _cherry_font_end[];
+// ==============^^^^^^^^^^^
+
 
 void kernel_main(MBI* mbi) {
     TagHeader* tag_head = ((char*)mbi+sizeof(MBI));
@@ -153,8 +161,10 @@ void kernel_main(MBI* mbi) {
     }
 
     // font things.
-    u32 font_file_size = &_terminus_font_end - &_terminus_font_start;
-    PCF_Result font_result = load_font(&_terminus_font_start, font_file_size);
+    // u32 font_file_size = &_terminus_font_end - &_terminus_font_start;
+    // PCF_Result font_result = load_font(&_terminus_font_start, font_file_size);
+
+    BDF_Result font_result = load_font((Slice){_cherry_font_start, _cherry_font_end - _cherry_font_start});
 
     int debug_nothing = 2;
 }

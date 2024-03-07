@@ -11,6 +11,7 @@
 
 #define bei32 int // big endian (LSB)
 
+#define bool u8
 #define false 0
 #define true 1
 
@@ -25,4 +26,8 @@ u32 be_to_le(u32 input){
     b3 = (input & 0xff000000) >> 24u;
 
     return b0 | b1 | b2 | b3;
+}
+
+void align_to(u32* input, u32 alignment) {
+    *input += ( (alignment - *input)  % alignment );
 }

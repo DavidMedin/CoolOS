@@ -8,6 +8,7 @@
             "args": [
                 "debug",
             ],
+            "dependsOn": "build",
 
             // All of these vvvvvvvvv are required to convince VSCode to run this command (`just debug`) and
             // not wait for it to exit before running gdb (the think in launch.json).
@@ -29,6 +30,14 @@
                   }
                 }
               ]
+        },
+        {
+          "label": "build",
+          "type":"process",
+          "command":"just",
+          "args": [
+            "build"
+          ]
         }
     ]
 }

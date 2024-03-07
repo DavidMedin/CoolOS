@@ -1,4 +1,5 @@
 INPUT(terminus_font.o)
+INPUT(cherry_font.o)
 
 ENTRY(_start)
 
@@ -17,6 +18,9 @@ SECTIONS {
         _terminus_font_start = .;
         terminus_font.o
         _terminus_font_end = .;
+        _cherry_font_start = .;
+        cherry_font.o
+        _cherry_font_end = .;
         *(.rodata)
     }
 

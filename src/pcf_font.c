@@ -136,6 +136,10 @@ typedef struct {
     } data;
 } PCF_Result;
 
+u32 size_of_pcf(PCF* pcf) {
+    return 1; // NOT TRUE
+}
+
 PCF_Result load_font(void* font_bytes, u32 font_size) {
     PCF font;
     u32 file_cursor = (u32)font_bytes;
@@ -152,7 +156,21 @@ PCF_Result load_font(void* font_bytes, u32 font_size) {
 
     font.header.table_entries = (struct toc_table*)file_cursor;
     file_cursor += sizeof(struct toc_table)*font.header.table_count;
-    
+    align_to(&file_cursor, 4); // Align to 32 bit (4 byte) boundary.
+
+    // Not actually needed.
+    for(int i = 0; i < font.header.table_count ;i++) {
+        bool glpyh_pad = PCF_GLYPH_PAD_MASK & (font.header.table_entries[i].format) != 0;
+        bool byte_big_endian = PCF_BYTE_MASK & (font.header.table_entries[i].format) != 0;
+        bool bit_big_endian = PCF_BIT_MASK & (font.header.table_entries[i].format) != 0;
+        bool scan_unit = PCF_SCAN_UNIT_MASK & (font.header.table_entries[i].format) != 0;
+
+        int do_something = 4;
+        int nothing = do_something;
+    }
+
+
+
     PCF_Result result;
     result.is_error = false;
     result.data.ok = font;
