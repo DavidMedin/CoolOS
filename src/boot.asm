@@ -40,11 +40,16 @@ section .multiboot2
     .tag_size: dd 8
 tags.end:
 
+    
 ; This is our 'stack' section. It will be 16 KiB.
 ; BSS is 'Block Ended by Symbol'. Not sure what that means, but
 ; this stack has a symbol at the top and bottom.
 section .bss
 align 16
+heap_top:
+resq 16384
+heap_bottom:
+
 stack_bottom:
 resq 16384 ; not sure how to just 'skip' bytes.
 stack_top: ; with x86, the stack grows down.

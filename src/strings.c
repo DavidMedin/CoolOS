@@ -2,7 +2,7 @@
 #include "defines.h"
 
 typedef struct {
-    char* string;
+    char* str;
     u32 len;
 } Slice;
 
@@ -57,8 +57,8 @@ bool slccmp(Slice slice_1, Slice slice_2){
     if(slice_1.len != slice_2.len){
         return false;
     }
-    for(int i = 0; (slice_1.string[i] != 0 && slice_2.string[i] != 0); i++){
-        if(slice_1.string[i] != slice_2.string[i]) {
+    for(int i = 0; (slice_1.str[i] != 0 && slice_2.str[i] != 0); i++){
+        if(slice_1.str[i] != slice_2.str[i]) {
             return false;
         }
     }
@@ -103,38 +103,37 @@ bool get_str_word(char* src, Slice* word, u32* cursor){
 
 bool get_slc_word(Slice src, Slice* word, Slice* cursor){
     bool in_word = false;
-    char* word_start = 0;
-    int i; // Tom Halverson is finally rubbing off on me (whhaaa?)
+    u32 word_start_idx = 0;
+    u32 i; // Tom Halverson is finally rubbing off on me (whhaaa?)
     for(i = 0; i < src.len;i++){
-        if(in_word == false && !is_whitespace(src.string[i])) {
+        if(in_word == false && !is_whitespace(src.str[i])) {
             in_word = true;
-            word_start = &src.string[i];
-        }else if(in_word == true && is_whitespace(src.string[i])) {
-            *word = (Slice){word_start, i};
+            word_start_idx = i;
+        }else if(in_word == true && is_whitespace(src.str[i])) {
+            *word = (Slice){&src.str[word_start_idx], i-word_start_idx};
             if(cursor != 0){
-                // *cursor += i;
-                *cursor = (Slice){cursor->string + i, cursor->len - i};
+                *cursor = (Slice){cursor->str + i, cursor->len - i};
             }
             return true;
         }
 
     }
-    if(word_start == 0){
+    if(in_word == false){
         return false;
     }
-    *word = (Slice){word_start, i};
+    *word = (Slice){&src.str[word_start_idx], i-word_start_idx};
     if(cursor != 0){
-        *cursor = (Slice){cursor->string + i, cursor->len - i};
+        *cursor = (Slice){cursor->str + i, cursor->len - i};
     }
     return true;
 }
 
 bool get_slc_line(Slice src, Slice* output, Slice* cursor){
     for(int i = 0;i < src.len;i++ ){
-        if(src.string[i] == '\n') {
-            *output = (Slice){src.string, i};
+        if(src.str[i] == '\n') {
+            *output = (Slice){src.str, i};
             if(cursor != 0){
-               *cursor = (Slice){cursor->string + i, cursor->len - i};
+               *cursor = (Slice){cursor->str + i + 1, cursor->len - i + 1};
             }
             return true;
         }
@@ -144,4 +143,27 @@ bool get_slc_line(Slice src, Slice* output, Slice* cursor){
 
 Slice mkslc(char* str){
     return (Slice){str, strlen(str)};
+}
+
+
+//Yoink Source : https://stackoverflow.com/questions/7021725/how-to-convert-a-string-to-integer-in-c
+u32 parse(char* str)
+{
+  u32 result;
+  u32 puiss;
+
+  result = 0;
+  puiss = 1;
+  while (('-' == (*str)) || ((*str) == '+'))
+  {
+      if (*str == '-')
+        puiss = puiss * -1;
+      str++;
+  }
+  while ((*str >= '0') && (*str <= '9'))
+  {
+      result = (result * 10) + ((*str) - '0');
+      str++;
+  }
+  return (result * puiss);
 }

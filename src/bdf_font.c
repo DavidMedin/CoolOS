@@ -8,8 +8,29 @@
 
 typedef struct {
     Slice font_source;
-    Slice version;
-    Slice name;
+    Slice version; // from STARTFONT
+    Slice name; // from FONT
+
+    // from SIZE
+    struct {
+        u32 point_size;
+        u32 x_res;
+        u32 y_res;
+    } size;
+
+    struct {
+        u32 bb_x; // bounding box x
+        u32 bb_y;
+        u32 x_off; // x offset
+        u32 y_off;
+    } font_bounding_box;
+
+    // can be 0,1, or 2. Defualt to 0.
+    // If set to 1, DWIDTH and SWIDTH are optional.
+    u32 metric_set;
+
+    u32 property_count;
+
 } BDF;
 
 typedef struct {
@@ -30,18 +51,6 @@ BDF_Result load_font(Slice font_slc) {
 
     Slice file_cursor = font_slc;
 
-    // if ( ! wordcmp(file_cursor, "STARTFONT") ) {
-    //     // This is bad.
-    //     return (BDF_Result){true, {"The font pointed to by font_slc is not a BDF!"}};
-    // }
-    // file_cursor += 10; // len(STARTFONT) + 1
-
-    // bool found_word = get_str_word(file_cursor, &font.version, &file_cursor);
-    // if(found_word == false) {
-    //     // very bad.
-    //     return (BDF_Result){true, {"I am bad at parsing"}};
-    // }
-
     // 3.1 : Global Font Information
     Slice line;
     while(true){ // only breaks on error or 'ENDPROPERTIES'.
@@ -59,31 +68,33 @@ BDF_Result load_font(Slice font_slc) {
         }
 
         if(slccmp(directive, mkslc("STARTFONT"))) {
-            if(get_slc_word(line, &font.version, &line) == false) {
-                goto error_eof;
-            }
+            // args:
+            //  integer version
+            if(get_slc_word(line, &font.version, &line) == false) goto error_eof;
         }else if(slccmp(directive, mkslc("FONT"))) {
-            if(get_slc_word(line, &font.name, &line) == false) {
-                goto error_eof;
-            }
-        }else if(slccmp(directive, mkslc("ENDPROPERTIES"))) {
+            // args:
+            //  string name
+            if(get_slc_word(line, &font.name, &line) == false) goto error_eof;
+        }else if( slccmp(directive, mkslc("SIZE") ) ){
+            // args:
+            //  integer point_size
+            //  integer x_res
+            //  integer y_res
+            Slice param;
+            if( get_slc_word(line, &param, &line) == false ) goto error_eof;
+            font.size.point_size = parse(param.str);
+            
+            if( get_slc_word(line, &param, &line) == false ) goto error_eof;
+            font.size.x_res = parse(param.str);
+            
+            if( get_slc_word(line, &param, &line) == false ) goto error_eof;
+            font.size.y_res = parse(param.str);
+        }
+        
+        else if(slccmp(directive, mkslc("ENDPROPERTIES"))) {
             break;
         }
 
-        
-        // if(get_str_word(file_cursor, &directive, &file_cursor) == false) {
-        //     // very bad.
-        //     error_eof:
-        //     return (BDF_Result){true, {"Found the end of the file while parsing the header."}};
-        // }
-
-        // if(strcmp(found_word, "FONT")) {
-        //     if(get_str_word(file_cursor, &font.name, &file_cursor) == false) {
-        //         goto error_eof;
-        //     }
-        // }else if(strcmp(found_word, "ENDPROPERTIES")){
-        //     break; // DONE!
-        // }
     }
 
     BDF_Result result;

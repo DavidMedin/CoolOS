@@ -4,3 +4,8 @@ Use `just` to run, build, or debug. `just` uses `nix` (which uses `make`) to bui
 
 ### Ok, an attempt to use Nix.
 there is a `nix` folder that contains some auto generated code on how to get the version of nix and packages we are using. Use those for reproducability.
+
+
+# TODO:
+[] Reimplement in Zig.
+[] Use [Scalable Screen Font](https://wiki.osdev.org/Scalable_Screen_Font).
