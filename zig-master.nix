@@ -9,9 +9,9 @@
 , callPackage,
 }:
 
-stdenv.mkDerivation {
+stdenv.mkDerivation (finalAttrs: {
   name = "zig-master";
-
+  version = "0.12.0";
   src = fetchgit {
     # owner = "ziglang";
     # repo = "zig";
@@ -54,11 +54,11 @@ stdenv.mkDerivation {
     runHook postInstallCheck
   '';
 
-#   passthru = {
-#     hook = callPackage ./hook.nix {
-#       zig = finalAttrs.finalPackage;
-#     };
-#   };
+  passthru = {
+    hook = callPackage ./hook.nix {
+      zig-master = finalAttrs.finalPackage;
+    };
+  };
 
   meta = {
     description = "General-purpose programming language and toolchain for maintaining robust, optimal, and reusable software";
@@ -68,4 +68,4 @@ stdenv.mkDerivation {
     maintainers = with lib.maintainers; [ andrewrk ] ++ lib.teams.zig.members;
     platforms = lib.platforms.unix;
   };
-} #// removeAttrs args [ "hash" ])
+})

@@ -28,9 +28,9 @@ stdenv.mkDerivation {
   # what packages to I need to build (build tuple)
   buildInputs = [ ];
 
-  buildPhase = ''
-  zig build
-  '';
+  # buildPhase = ''
+  # zig build
+  # '';
 
   postInstall = ''
     mkdir -p $out
