@@ -1,9 +1,10 @@
 {
   lib,
   stdenv,
-  nasm,
-  grub2,
-  libisoburn
+  # nasm,
+  # grub2,
+  # libisoburn
+  zig-master,
 }:
 let
     fs = lib.fileset;
@@ -13,7 +14,7 @@ let
 in
 stdenv.mkDerivation {
   pname = "cool-os";
-  version = "v1.1.1";
+  version = "v1.1.2";
 
   # What are the source files?
   src = fs.toSource {
@@ -22,14 +23,19 @@ stdenv.mkDerivation {
   };
 
   # what packages do I need to build (host tuple)
-  nativeBuildInputs = [ nasm grub2 libisoburn zig-master ];
+  nativeBuildInputs = [  zig-master ]; # nasm grub2 libisoburn
 
   # what packages to I need to build (build tuple)
   buildInputs = [ ];
 
+  buildPhase = ''
+  zig build
+  '';
+
   postInstall = ''
     mkdir -p $out
-    cp -v coolos.img $out
-    cp -v coolos.bin $out
+    cp zig-out/bin/* $out
   '';
+  # cp -v coolos.img $out
+  # cp -v coolos.bin $out
 }

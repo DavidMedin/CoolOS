@@ -3,5 +3,5 @@
     "files.associations": {
         "defines.h": "c"
     },
-    "nixEnvSelector.nixFile": "${workspaceFolder}/flake.nix"
+    "nixEnvSelector.nixFile": "${workspaceFolder}/default.nix"
 }

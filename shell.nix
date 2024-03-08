@@ -1,3 +1,5 @@
 with
   import <nixpkgs> { };
-callPackage ./zig-master.nix { }
+mkShell {
+  nativeBuildInputs = with pkgs.buildPackages; [ (callPackage ./zig-master.nix { }) ];
+}
