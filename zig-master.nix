@@ -2,35 +2,35 @@
 , stdenv
 , fetchgit
 , cmake
-, llvmPackages
+, llvmPackages_17
 , libxml2
 , zlib
 , coreutils
-, callPackage
-
+, callPackage,
 }:
 
-stdenv.mkDerivation ({
-  pname = "zig";
+stdenv.mkDerivation {
+  name = "zig-master";
 
   src = fetchgit {
     # owner = "ziglang";
     # repo = "zig";
     url = "https://github.com/ziglang/zig";
     rev = "377ecc6afb14a112a07c6d2c3570e2b77b12a116";
+    hash = "sha256-flxB3IbngjgBwJeGGx4oDAw0AIi7SfJ5Z9vbRZkoUKs=";
     # inherit (args) hash;
-    hash = "";
   };
 
   nativeBuildInputs = [
     cmake
-    llvmPackages.llvm.dev
+    llvmPackages_17.llvm.dev
   ];
 
   buildInputs = [
     libxml2
     zlib
-  ] ++ (with llvmPackages; [
+    stdenv.cc.cc.lib
+  ] ++ (with llvmPackages_17; [
     libclang
     lld
     llvm
@@ -41,7 +41,7 @@ stdenv.mkDerivation ({
   # Zig's build looks at /usr/bin/env to find dynamic linking info. This doesn't
   # work in Nix's sandbox. Use env from our coreutils instead.
   postPatch = ''
-    substituteInPlace lib/std/zig/system/NativeTargetInfo.zig \
+    substituteInPlace lib/std/zig/system.zig \
       --replace "/usr/bin/env" "${coreutils}/bin/env"
   '';
 
@@ -63,8 +63,9 @@ stdenv.mkDerivation ({
   meta = {
     description = "General-purpose programming language and toolchain for maintaining robust, optimal, and reusable software";
     homepage = "https://ziglang.org/";
+    # changelog = "https://ziglang.org/download/${finalAttrs.version}/release-notes.html";
     license = lib.licenses.mit;
     maintainers = with lib.maintainers; [ andrewrk ] ++ lib.teams.zig.members;
     platforms = lib.platforms.unix;
   };
-} // removeAttrs args [ "hash" ])
+} #// removeAttrs args [ "hash" ])

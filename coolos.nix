@@ -22,7 +22,7 @@ stdenv.mkDerivation {
   };
 
   # what packages do I need to build (host tuple)
-  nativeBuildInputs = [ nasm grub2 libisoburn ];
+  nativeBuildInputs = [ nasm grub2 libisoburn zig-master ];
 
   # what packages to I need to build (build tuple)
   buildInputs = [ ];
