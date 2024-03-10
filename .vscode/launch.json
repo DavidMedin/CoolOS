@@ -8,7 +8,7 @@
             "name": "Debug OS",
             "type":"cppdbg",
             "request": "launch",
-            "program": "${workspaceRoot}/result/coolos.bin",
+            "program": "${workspaceRoot}/zig-out/bin/coolos.bin",
             "cwd": "${workspaceRoot}",
             "miDebuggerServerAddress": "localhost:1234",
             "miDebuggerPath": "/usr/bin/gdb",
