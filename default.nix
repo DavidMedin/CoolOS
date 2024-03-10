@@ -4,9 +4,9 @@
 # }:
 let
   pkgs = import <nixpkgs> { };
-    # pkgs = (import sources.nixpkgs { overlays=[(import ./zig-master.nix )]; }).pkgsCross.i686-embedded;
-  zig-master = pkgs.callPackage ./zig-master.nix { };
+    # pkgs = (import sources.nixpkgs { overlays=[(import ./zigMaster.nix )]; }).pkgsCross.i686-embedded;
+  zigMaster = pkgs.callPackage ./zigMaster.nix { };
 in
 pkgs.callPackage ./coolos.nix { 
-  inherit zig-master; # Equal to zig-master = zig-master;
+  inherit zigMaster; # Equal to zigMaster = zigMaster;
 }

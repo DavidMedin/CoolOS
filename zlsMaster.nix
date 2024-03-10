@@ -2,18 +2,18 @@
 , stdenv
 , fetchgit
 , callPackage
-, zig-master
+, zigMaster
 }:
 
-stdenv.mkDerivation {
-  name = "zls-master";
+stdenv.mkDerivation rec {
+  name = "zlsMaster";
 
   src = fetchgit {
     # owner = "ziglang";
     # repo = "zig";
     url = "https://github.com/zigtools/zls";
-    rev = "ac60c30661cb4c371106c330d4a851fbd61c4d9e";
-    hash = "sha256-5T4T9F165C7JN2ZgaelQtEFqmP7NbzXleh1kxbNkGzE=";
+    rev = "80ddf7b52f485bf71a1ba73a081e709a6a601feb";
+    hash = "sha256-sN+4wUuHWUNDNPcve6nOYAOaai9UAUOkxLGNS0woDN8==";
     # inherit (args) hash;
   };
 
@@ -32,17 +32,19 @@ stdenv.mkDerivation {
 #     lld
 #     llvm
 #   ]);
-    nativeBuildInputs = [ zig-master.hook ];
-
-#   env.ZIG_GLOBAL_CACHE_DIR = "$TMPDIR/zig-cache";
+    nativeBuildInputs = [ 
+      zigMaster.hook
+    ];
+    
+  env.ZIG_GLOBAL_CACHE_DIR = "$TMPDIR/zig-cache";
 
   # Zig's build looks at /usr/bin/env to find dynamic linking info. This doesn't
   # work in Nix's sandbox. Use env from our coreutils instead.
-#   postPatch = ''
-#     substituteInPlace lib/std/zig/system.zig \
-#       --replace "/usr/bin/env" "${coreutils}/bin/env"
-#   '';
-# 
+  # postPatch = ''
+  #   substituteInPlace lib/std/zig/system.zig \
+  #     --replace "/usr/bin/env" "${coreutils}/bin/env"
+  # '';
+
 #   doInstallCheck = true;
     postPatch = ''
     ln -s ${callPackage ./deps.nix { }} $ZIG_GLOBAL_CACHE_DIR/p

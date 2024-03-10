@@ -4,7 +4,7 @@
   # nasm,
   # grub2,
   # libisoburn
-  zig-master,
+  zigMaster,
 }:
 let
     fs = lib.fileset;
@@ -23,7 +23,7 @@ stdenv.mkDerivation {
   };
 
   # what packages do I need to build (host tuple)
-  nativeBuildInputs = [  zig-master ]; # nasm grub2 libisoburn
+  nativeBuildInputs = [  zigMaster ]; # nasm grub2 libisoburn
 
   # what packages to I need to build (build tuple)
   buildInputs = [ ];

@@ -6,19 +6,13 @@ default:
 
 # Use an actual build system (Nix [actually just make]) to build.
 build:
-    nix-build
+    ./zig-tools/zig-linux/zig build
 
 debug:
-    #!/usr/bin/env nix-shell
-    #! nix-shell -i bash
-    #! nix-shell -p qemu gdb
     qemu-system-i386 -blockdev driver=file,node-name=disk_file,read-only=true,filename=result/coolos.img  -device nvme,drive=disk_file,serial=deadbeef -s -S
 
 # Run gdb and qemu
 debug-gdb: build
-    #!/usr/bin/env nix-shell
-    #! nix-shell -i bash
-    #! nix-shell -p qemu gdb
     set -euxo pipefail
     kitty --detach --directory=. gdb -ex 'target remote localhost:1234' --symbols=result/coolos.bin
     qemu-system-i386 -blockdev driver=file,node-name=disk_file,read-only=true,filename=result/coolos.img  -device nvme,drive=disk_file,serial=deadbeef  -s -S &
@@ -28,8 +22,5 @@ debug-gdb: build
 
 # Run qemu
 run: build
-    #!/usr/bin/env nix-shell
-    #! nix-shell -i bash
-    #! nix-shell -p qemu
     set -euxo pipefail
     qemu-system-i386 -blockdev driver=file,node-name=disk_file,read-only=true,filename=result/coolos.img  -device nvme,drive=disk_file,serial=deadbeef

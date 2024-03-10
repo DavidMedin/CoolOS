@@ -1,12 +1,12 @@
 { lib
 , makeSetupHook
-, zig-master
+, zigMaster
 }:
 
 makeSetupHook {
   name = "zig-hook";
 
-  propagatedBuildInputs = [ zig-master ];
+  propagatedBuildInputs = [ zigMaster ];
 
   substitutions = {
     # This zig_default_flags below is meant to avoid CPU feature impurity in
@@ -32,7 +32,7 @@ makeSetupHook {
     zig_default_flags =
       let
         releaseType =
-          if lib.versionAtLeast zig-master.version "0.11" then
+          if lib.versionAtLeast zigMaster.version "0.11" then
             "-Doptimize=ReleaseSafe"
           else
             "-Drelease-safe=true";
@@ -40,10 +40,10 @@ makeSetupHook {
       [ "-Dcpu=baseline" releaseType ];
   };
 
-  passthru = { inherit zig-master; };
+  passthru = { inherit zigMaster; };
 
   meta = {
     description = "A setup hook for using the Zig compiler in Nixpkgs";
-    inherit (zig-master.meta) maintainers platforms broken;
+    inherit (zigMaster.meta) maintainers platforms broken;
   };
 } ./setup-hook.sh
