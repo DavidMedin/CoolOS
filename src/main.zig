@@ -95,19 +95,22 @@ const ImageLoadBaseAddress = struct {
 };
 
 fn align_to(input : *usize, alignment : u32) void {
-    input.* += ( (input.* - alignment) % alignment);
+    //input.* += ( (input.* - alignment) % alignment);
+    input.* += ( alignment - (input.* % alignment) ) % alignment;
 }
 
-var base_address : u32 = 0; // bad.
-var MBI_info = [_]u32{0} ** 3000; // Also bad.
-var MBI_end : u32 = 0;
+export var base_address : u32 = 0; // bad.
+export var MBI_info = [_]u32{0} ** 3000; // Also bad.
+export var MBI_end : u32 = 0;
 
 pub export fn kernel_main(mbi : *MBI) callconv(.C) void {
     var tag_head : *TagHeader = @ptrFromInt( @intFromPtr(mbi) + @sizeOf(MBI) );
     var tag_addr : u32 = @intFromPtr(tag_head);
 
     align_to(&tag_addr, 8);
-    var fb_info : *FrameBufferInfo = undefined;
+    tag_head = @ptrFromInt(tag_addr);
+
+    var fb_info_maybe : ?*FrameBufferInfo = null;
 
     while(tag_head.*.type != 0) {
         MBI_info[MBI_end] = tag_head.*.type;
@@ -115,7 +118,7 @@ pub export fn kernel_main(mbi : *MBI) callconv(.C) void {
 
         switch(tag_head.*.type){
             8 => {
-                fb_info = @ptrCast( tag_head );
+                fb_info_maybe = @ptrCast( tag_head );
             },
             else => {
 
@@ -127,16 +130,22 @@ pub export fn kernel_main(mbi : *MBI) callconv(.C) void {
         tag_head = @ptrFromInt(tag_addr);
     }
 
-    if(fb_info.*.fmbuff_type == 0 ){
-        // color_info is defined by an indexed palette.
-        //fb_info.*.fmbuff_addr = 1;
-    }else if(fb_info.*.fmbuff_type == 1) {
-        const to_usize : usize = @intCast( fb_info.*.fmbuff_addr );
-        const bad_ptr : *u32 = @ptrFromInt( to_usize ) ;
-        bad_ptr.* = std.math.maxInt(u32);
+    if(fb_info_maybe) |fb_info| {
+        if(fb_info.*.fmbuff_type == 0 ){
+            // color_info is defined by an indexed palette.
+            //fb_info.*.fmbuff_addr = 1;
+        }else if(fb_info.*.fmbuff_type == 1) {
+            const to_usize : usize = @intCast( fb_info.*.fmbuff_addr );
+            const bad_ptr : *u32 = @ptrFromInt( to_usize ) ;
+            bad_ptr.* = std.math.maxInt(u32);
+        }
     }
+    //std.mem.doNotOptimizeAway( MBI_info[0] );
     var thing : i32 = 3;
     thing = 2;
+    if(MBI_info[0] == 1) {
+        thing = 4;
+    }
 }
 
 // test "simple test" {
