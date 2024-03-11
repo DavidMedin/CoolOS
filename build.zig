@@ -16,7 +16,9 @@ pub fn build(b: *std.Build) void {
     // Standard optimization options allow the person running `zig build` to select
     // between Debug, ReleaseSafe, ReleaseFast, and ReleaseSmall. Here we do not
     // set a preferred release mode, allowing the user to decide how to optimize.
-    const optimize = b.standardOptimizeOption(.{}); // defaults to debug
+    const optimize = b.standardOptimizeOption(.{
+        .preferred_optimize_mode = .Debug
+    }); // defaults to debug
 
     // const lib = b.addStaticLibrary(.{
     //     .name = "master",
@@ -60,6 +62,7 @@ pub fn build(b: *std.Build) void {
     bake_iso.addArg("-o");
     const img_path = bake_iso.addOutputFileArg("coolos.img");
     bake_iso.addArg("isodir");
+    bake_iso.step.dependOn(&cp_file_step.step);
 
 
     // This declares intent for the executable to be installed into the
