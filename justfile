@@ -2,10 +2,12 @@ default:
     just --list
 
 @clean:
-    rm *.o *.img *.bin isodir/boot/coolos.bin
+    rm isodir/boot/coolos.bin || true
+    rm -rf zig-out || true
+    rm -rf zig-cache || true
 
 # Use an actual build system (Nix [actually just make]) to build.
-build:
+build: clean # the dep. clean is to force zig to recompile.
     ./zig-tools/zig-linux/zig build
 
 debug:

@@ -163,7 +163,7 @@ void kernel_main(MBI* mbi) {
     // u32 font_file_size = &_terminus_font_end - &_terminus_font_start;
     // PCF_Result font_result = load_font(&_terminus_font_start, font_file_size);
 
-    BDF_Result font_result = load_font((Slice){_cherry_font_start, _cherry_font_end - _cherry_font_start});
+    // BDF_Result font_result = load_font((Slice){_cherry_font_start, _cherry_font_end - _cherry_font_start});
 
     int debug_nothing = 2;
 }

@@ -95,7 +95,7 @@ const ImageLoadBaseAddress = struct {
 };
 
 fn align_to(input : *usize, alignment : u32) void {
-    input.* += ( (alignment - input.*) % alignment);
+    input.* += ( (input.* - alignment) % alignment);
 }
 
 var base_address : u32 = 0; // bad.
