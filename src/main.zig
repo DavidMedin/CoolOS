@@ -1,5 +1,25 @@
 // https://wiki.osdev.org/Zig_Bare_Bones
+
+// fonts : https://wiki.osdev.org/Scalable_Screen_Font
+// https://wiki.osdev.org/Scalable_Screen_Font
+// https://gitlab.com/bztsrc/scalable-font2
+
+// File format : https://gitlab.com/bztsrc/scalable-font2/blob/master/docs/sfn_format.md
+// Renderer API : https://gitlab.com/bztsrc/scalable-font2/blob/master/docs/API.md
+
+// OSDEV forum about this : https://forum.osdev.org/viewtopic.php?f=2&t=33719
+
+
+
+// multiboot 2 : https://www.gnu.org/software/grub/manual/multiboot2/multiboot.html
 const std = @import("std");
+const ssfn = @cImport({
+    @cDefine("SSFN_MAXLINES", "4096");
+    //SSFN_CONSOLEBITMAP_PALETTE
+    @cDefine("SSFN_CONSOLEBITMAP_TRUECOLOR", {});
+    @cDefine("NULL", "0"); // Never thought I'd have to do this for C.
+    @cInclude("scalable-font2/ssfn.h");
+});
 
 pub fn panic(msg: []const u8, error_return_trace: ?*std.builtin.StackTrace, something : ?usize) noreturn {
     _ = msg;
@@ -95,13 +115,16 @@ const ImageLoadBaseAddress = struct {
 };
 
 fn align_to(input : *usize, alignment : u32) void {
-    //input.* += ( (input.* - alignment) % alignment);
     input.* += ( alignment - (input.* % alignment) ) % alignment;
 }
 
 export var base_address : u32 = 0; // bad.
 export var MBI_info = [_]u32{0} ** 3000; // Also bad.
 export var MBI_end : u32 = 0;
+
+export var ssfn_src : *ssfn.ssfn_font_t = @ptrCast( @constCast( @embedFile("resources/fonts/wakuwaku.sfn" ) ) );
+// SFN Docs are wrong, ssfn_dist is a ssfn_buf_t, not a *ssfn_buf_t!
+export var ssfn_dst : ssfn.ssfn_buf_t = undefined;
 
 pub export fn kernel_main(mbi : *MBI) callconv(.C) void {
     var tag_head : *TagHeader = @ptrFromInt( @intFromPtr(mbi) + @sizeOf(MBI) );
@@ -137,20 +160,39 @@ pub export fn kernel_main(mbi : *MBI) callconv(.C) void {
         }else if(fb_info.*.fmbuff_type == 1) {
             const to_usize : usize = @intCast( fb_info.*.fmbuff_addr );
             const bad_ptr : *u32 = @ptrFromInt( to_usize ) ;
-            bad_ptr.* = std.math.maxInt(u32);
+            _ = bad_ptr;
+            // bad_ptr.* = std.math.maxInt(u32);
         }
+
+        
+        // Frame buffer to ssfn dest.
+        const fmbuff_addr : usize = @intCast( fb_info.*.fmbuff_addr );
+        //_ = fmbuff_addr;
+        ssfn_dst = .{
+            .ptr = @ptrFromInt( fmbuff_addr ),
+            .p = @intCast( fb_info.*.fmbuff_pitch ),
+            .w = @intCast( fb_info.*.fmbuff_width ),
+            .h = @intCast( fb_info.*.fmbuff_height ),
+            .fg = 0xeeeeeeee,
+            .bg = 0x0,
+            .x = @intCast( 40 ),
+            .y = @intCast( 40 )
+        };
+
+//        const render_string  = "hello";
+//        const cursor = &render_string;
+//        const unicode = ssfn.ssfn_utf8(cursor);
+//        _ = unicode;
+        const result : i32 = @intCast( ssfn.ssfn_putc('a') );
+        if(result != 0){
+            @panic("fonts are bad");
+        }
+        
     }
-    //std.mem.doNotOptimizeAway( MBI_info[0] );
-    var thing : i32 = 3;
-    thing = 2;
-    if(MBI_info[0] == 1) {
-        thing = 4;
-    }
+
+
+    //while(true) {
+    //    @breakpoint();
+    //}
 }
 
-// test "simple test" {
-//     var list = std.ArrayList(i32).init(std.testing.allocator);
-//     defer list.deinit(); // try commenting this out and see if zig detects the memory leak!
-//     try list.append(42);
-//     try std.testing.expectEqual(@as(i32, 42), list.pop());
-// }

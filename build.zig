@@ -51,6 +51,7 @@ pub fn build(b: *std.Build) void {
         .code_model = .kernel,
     });
     exe.linker_script = .{ .path = "src/linker.ld" };
+    exe.addSystemIncludePath(.{.path = "src/third-party/"});
 
     exe.addObjectFile(asm_obj); // use output of assembing the boot assembly.
 

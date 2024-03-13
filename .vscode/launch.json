@@ -5,7 +5,17 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Debug OS",
+            "name": "Debug OS LLDB",
+            "type":"lldb",
+            "request": "custom",
+            "initCommands": [
+                "target create '${workspaceRoot}/zig-out/bin/coolos.bin'",
+                "gdb-remote localhost:1234",
+            ],
+            "preLaunchTask": "run-qemu"
+        },
+        {
+            "name": "Debug OS GDB",
             "type":"cppdbg",
             "request": "launch",
             "program": "${workspaceRoot}/zig-out/bin/coolos.bin",
