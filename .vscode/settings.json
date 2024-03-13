@@ -3,7 +3,6 @@
     "files.associations": {
         "defines.h": "c"
     },
-    "nixEnvSelector.nixFile": "${workspaceFolder}/default.nix",
 
     "zig.path": "${workspaceFolder}/zig-tools/zig-linux/zig",
     "zig.zls.path": "${workspaceFolder}/zig-tools/zls/zig-out/bin/zls",

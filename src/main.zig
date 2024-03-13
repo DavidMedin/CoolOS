@@ -26,7 +26,8 @@ pub fn panic(msg: []const u8, error_return_trace: ?*std.builtin.StackTrace, some
     _ = error_return_trace;
     _ = something;
     while(true) {
-        @breakpoint();
+        @trap();
+        //@breakpoint();
     }
 }
 
@@ -158,6 +159,8 @@ pub export fn kernel_main(mbi : *MBI) callconv(.C) void {
             // color_info is defined by an indexed palette.
             //fb_info.*.fmbuff_addr = 1;
         }else if(fb_info.*.fmbuff_type == 1) {
+
+            // Test pixel in top left
             const to_usize : usize = @intCast( fb_info.*.fmbuff_addr );
             const bad_ptr : *u32 = @ptrFromInt( to_usize ) ;
             _ = bad_ptr;
@@ -175,18 +178,19 @@ pub export fn kernel_main(mbi : *MBI) callconv(.C) void {
             .h = @intCast( fb_info.*.fmbuff_height ),
             .fg = 0xeeeeeeee,
             .bg = 0x0,
-            .x = @intCast( 40 ),
-            .y = @intCast( 40 )
+            .x = @intCast( 0 ),
+            .y = @intCast( 0 )
         };
 
-//        const render_string  = "hello";
-//        const cursor = &render_string;
-//        const unicode = ssfn.ssfn_utf8(cursor);
-//        _ = unicode;
-        const result : i32 = @intCast( ssfn.ssfn_putc('a') );
-        if(result != 0){
-            @panic("fonts are bad");
-        }
+       const render_string  = "hello";
+       var cursor : *u8 = @ptrCast( @constCast( render_string ) );
+       while( cursor.* != 0) {
+            const result : i32 = ssfn.ssfn_putc( ssfn.ssfn_utf8(@ptrCast( &cursor )) );
+            if(result != 0){
+                @panic("fonts are bad");
+            }
+            ssfn_dst.x += 32;
+       }
         
     }
 
