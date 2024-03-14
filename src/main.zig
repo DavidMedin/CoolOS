@@ -127,6 +127,51 @@ export var ssfn_src : *ssfn.ssfn_font_t = @ptrCast( @constCast( @embedFile("reso
 // SFN Docs are wrong, ssfn_dist is a ssfn_buf_t, not a *ssfn_buf_t!
 export var ssfn_dst : ssfn.ssfn_buf_t = undefined;
 
+
+// This function is not actually needed :3
+// fn get_glyph_data(codepoint : u32) ssfn.ssfn_chr_t {
+//     const glyph_table : *ssfn.ssfn_chr_t = @ptrFromInt( @intFromPtr( ssfn_src ) + @as( usize, @intCast( ssfn_src.*.characters_offs ) ) );
+//     var glyph_cursor = glyph_table;
+//     var current_codepoint : u32 = 0;
+
+//     const big_two_bits : i2 = @intCast(glyph_cursor.*.t >> 6); // = xx, where xxffffff.
+
+//     while( true ){ 
+//         if( big_two_bits == 0 ) {
+//             // there is a glyph!
+
+//             if(codepoint == current_codepoint) {
+//                 // Time to return information about this codepoint.
+
+//                 return glyph_cursor.*;
+//             }else {
+//                 // Not the codepoint we are looking for, so continue to the next one.
+//                 //glyph_cursor = @ptrFromInt( @intFromPtr(glyph_cursor) + @sizeOf(ssfn.ssfn_chr_t));
+//                 current_codepoint += 1;
+//                 continue;
+//             }
+            
+//         }else{ 
+//             // There is no glyph, time to skip. But how much?
+
+//             const remainder : u32 = @intCast(glyph_cursor.*.t & 0b00111111);
+//             if( big_two_bits == 2) {
+//                 current_codepoint += remainder + 1;
+//             }else if(glyph_cursor.*.t == std.math.maxInt(u8)) {
+//                 current_codepoint += 65536;
+//             }else if(big_two_bits == 3) {
+//                 // Effectively xxaaaaaa aaaaaaaa
+//                 //               |<----------->|------ this number.
+//                 current_codepoint += ( (remainder << 8) + glyph_cursor.*.n) + 1;
+//             }else {
+//                 unreachable;
+//             }
+
+//         }
+
+//     }
+// }
+
 pub export fn kernel_main(mbi : *MBI) callconv(.C) void {
     var tag_head : *TagHeader = @ptrFromInt( @intFromPtr(mbi) + @sizeOf(MBI) );
     var tag_addr : u32 = @intFromPtr(tag_head);
@@ -187,9 +232,8 @@ pub export fn kernel_main(mbi : *MBI) callconv(.C) void {
        while( cursor.* != 0) {
             const result : i32 = ssfn.ssfn_putc( ssfn.ssfn_utf8(@ptrCast( &cursor )) );
             if(result != 0){
-                @panic("fonts are bad");
+                @panic("fonts are bad. I am good at errors.");
             }
-            ssfn_dst.x += 32;
        }
         
     }
