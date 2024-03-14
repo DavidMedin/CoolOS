@@ -18,4 +18,10 @@ These file will not be included in git.
 
 # TODO:
 [x] Reimplement in Zig.\
-[] Use [Scalable Screen Font](https://wiki.osdev.org/Scalable_Screen_Font).
+[x] Use [Scalable Screen Font](https://wiki.osdev.org/Scalable_Screen_Font).
+[ ] Enable floating point numbers.
+[ ] Use SSFN2 Normal Renderer
+    [ ] Make dynamic allocator with Zig std.mem
+[ ] Color Text
+[ ] Prevent SIGTRAP at start of LLDB
+[ ] Better panics - text

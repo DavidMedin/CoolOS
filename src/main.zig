@@ -1,5 +1,9 @@
+// multiboot 2 : https://www.gnu.org/software/grub/manual/multiboot2/multiboot.html
+
+// Zig things:
 // https://wiki.osdev.org/Zig_Bare_Bones
 
+// Screen things.
 // fonts : https://wiki.osdev.org/Scalable_Screen_Font
 // https://wiki.osdev.org/Scalable_Screen_Font
 // https://gitlab.com/bztsrc/scalable-font2
@@ -10,8 +14,6 @@
 // OSDEV forum about this : https://forum.osdev.org/viewtopic.php?f=2&t=33719
 
 
-
-// multiboot 2 : https://www.gnu.org/software/grub/manual/multiboot2/multiboot.html
 const std = @import("std");
 const ssfn = @cImport({
     @cDefine("SSFN_MAXLINES", "4096");
@@ -26,10 +28,53 @@ pub fn panic(msg: []const u8, error_return_trace: ?*std.builtin.StackTrace, some
     _ = error_return_trace;
     _ = something;
     while(true) {
-        @trap();
-        //@breakpoint();
+        @breakpoint();
     }
 }
+
+export var ssfn_src : *ssfn.ssfn_font_t = @ptrCast( @constCast( @embedFile("resources/fonts/lanapixel.sfn" ) ) );
+// SFN Docs are wrong, ssfn_dist is a ssfn_buf_t, not a *ssfn_buf_t!
+export var ssfn_dst : ssfn.ssfn_buf_t = undefined;
+
+var print_buffer = [_]u8{0} ** 4096;
+// Defines how std.log.error, std.log.debug, and friends function.
+fn kernelLogFn(comptime level: std.log.Level, comptime scope: @TypeOf(.EnumLiteral), comptime format: []const u8, args: anytype) void {
+        _ = scope;
+        //const ED = comptime "\x1b[";
+        //_ = ED;
+        //const reset = "\x1b[0m";
+        //_ = reset;
+
+
+        const prefix = "[" ++ comptime level.asText() ++ "] ";
+        const fmt_string: []u8 = std.fmt.bufPrint(&print_buffer, prefix ++ format, args) catch unreachable;
+        //const render_string  = "hello";
+        var cursor : *u8 = @ptrCast( @constCast( fmt_string ) );
+        while( cursor.* != 0) {
+            const codepoint = ssfn.ssfn_utf8(@ptrCast( &cursor ));
+
+            // If newline
+            if(codepoint == 10) {
+
+                ssfn_dst.y += ssfn_src.*.height; // Move one line down, (new line)
+                ssfn_dst.x = 0; // and reset to left side of screen (carrige return)
+
+            }else {
+
+                const result : i32 = ssfn.ssfn_putc( codepoint );
+                if(result != 0){
+                    //https://gitlab.com/bztsrc/scalable-font2/blob/master/docs/API.md#error-codes
+                    @panic("fonts are bad. I am good at errors.");
+                }
+
+            }
+        }
+        ssfn_dst.y += ssfn_src.*.height; // Move one line down, (new line)
+        ssfn_dst.x = 0; // and reset to left side of screen (carrige return)
+    }
+pub const std_options : std.Options = .{
+    .logFn = kernelLogFn
+};
 
 const MBI = struct {
     total_size : u32, // Total size of everything.
@@ -123,54 +168,7 @@ export var base_address : u32 = 0; // bad.
 export var MBI_info = [_]u32{0} ** 3000; // Also bad.
 export var MBI_end : u32 = 0;
 
-export var ssfn_src : *ssfn.ssfn_font_t = @ptrCast( @constCast( @embedFile("resources/fonts/wakuwaku.sfn" ) ) );
-// SFN Docs are wrong, ssfn_dist is a ssfn_buf_t, not a *ssfn_buf_t!
-export var ssfn_dst : ssfn.ssfn_buf_t = undefined;
 
-
-// This function is not actually needed :3
-// fn get_glyph_data(codepoint : u32) ssfn.ssfn_chr_t {
-//     const glyph_table : *ssfn.ssfn_chr_t = @ptrFromInt( @intFromPtr( ssfn_src ) + @as( usize, @intCast( ssfn_src.*.characters_offs ) ) );
-//     var glyph_cursor = glyph_table;
-//     var current_codepoint : u32 = 0;
-
-//     const big_two_bits : i2 = @intCast(glyph_cursor.*.t >> 6); // = xx, where xxffffff.
-
-//     while( true ){ 
-//         if( big_two_bits == 0 ) {
-//             // there is a glyph!
-
-//             if(codepoint == current_codepoint) {
-//                 // Time to return information about this codepoint.
-
-//                 return glyph_cursor.*;
-//             }else {
-//                 // Not the codepoint we are looking for, so continue to the next one.
-//                 //glyph_cursor = @ptrFromInt( @intFromPtr(glyph_cursor) + @sizeOf(ssfn.ssfn_chr_t));
-//                 current_codepoint += 1;
-//                 continue;
-//             }
-            
-//         }else{ 
-//             // There is no glyph, time to skip. But how much?
-
-//             const remainder : u32 = @intCast(glyph_cursor.*.t & 0b00111111);
-//             if( big_two_bits == 2) {
-//                 current_codepoint += remainder + 1;
-//             }else if(glyph_cursor.*.t == std.math.maxInt(u8)) {
-//                 current_codepoint += 65536;
-//             }else if(big_two_bits == 3) {
-//                 // Effectively xxaaaaaa aaaaaaaa
-//                 //               |<----------->|------ this number.
-//                 current_codepoint += ( (remainder << 8) + glyph_cursor.*.n) + 1;
-//             }else {
-//                 unreachable;
-//             }
-
-//         }
-
-//     }
-// }
 
 pub export fn kernel_main(mbi : *MBI) callconv(.C) void {
     var tag_head : *TagHeader = @ptrFromInt( @intFromPtr(mbi) + @sizeOf(MBI) );
@@ -227,20 +225,13 @@ pub export fn kernel_main(mbi : *MBI) callconv(.C) void {
             .y = @intCast( 0 )
         };
 
-       const render_string  = "hello";
-       var cursor : *u8 = @ptrCast( @constCast( render_string ) );
-       while( cursor.* != 0) {
-            const result : i32 = ssfn.ssfn_putc( ssfn.ssfn_utf8(@ptrCast( &cursor )) );
-            if(result != 0){
-                @panic("fonts are bad. I am good at errors.");
-            }
-       }
-        
+        std.log.debug("hello!", .{});
+        std.log.err("Has something gone bad? Who knows?\n",.{});
     }
 
 
-    //while(true) {
-    //    @breakpoint();
-    //}
+    while(true) {
+        @breakpoint();
+    }
 }
 

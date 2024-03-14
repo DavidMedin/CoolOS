@@ -1,9 +1,30 @@
 const std = @import("std");
+const Target = @import("std").Target;
+//const CrossTarget = @import("std").zig.CrossTarget;
+const Feature = @import("std").Target.Cpu.Feature;
 
 // Although this function looks imperative, note that its job is to
 // declaratively construct a build graph that will be executed by an external
 // runner.
 pub fn build(b: *std.Build) void {
+
+    const features = Target.x86.Feature;
+ 
+    var disabled_features = Feature.Set.empty;
+    var enabled_features = Feature.Set.empty;
+ 
+    // Yoinked from the Zig Bare Bones guide. One of these is needed to not
+    //  allow floating points.
+    // Later, I'll want to initialize the floating point stuff, but until then, no.
+    // Without these, std.log.debug wants floats.
+    disabled_features.addFeature(@intFromEnum(features.mmx));
+    disabled_features.addFeature(@intFromEnum(features.sse));
+    disabled_features.addFeature(@intFromEnum(features.sse2));
+    disabled_features.addFeature(@intFromEnum(features.avx));
+    disabled_features.addFeature(@intFromEnum(features.avx2));
+    enabled_features.addFeature(@intFromEnum(features.soft_float));
+ 
+
     // Standard target options allows the person running `zig build` to choose
     // what target to build for. Here we do not override the defaults, which
     // means any target is allowed, and the default is native. Other options
@@ -11,6 +32,8 @@ pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{ .default_target = .{
         .cpu_arch = .x86,
         .os_tag = .freestanding,
+        .cpu_features_add = enabled_features,
+        .cpu_features_sub = disabled_features
     } });
 
     // Standard optimization options allow the person running `zig build` to select
