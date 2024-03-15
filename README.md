@@ -25,3 +25,4 @@ These file will not be included in git.
 [ ] Color Text
 [ ] Prevent SIGTRAP at start of LLDB
 [ ] Better panics - text
+[ ] Simple File System
