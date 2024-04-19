@@ -1,5 +1,7 @@
-= CoolOS, A Cool Operating System.
-
+# CoolOS, A Cool Operating System.
+## What is this?
+This is a homemade operating system for `i386` (aka AI-32 [aka 'Intel Architecture 32-bit'] ) systems.\
+In other words, a 32-bit operating system for x86 machines, not ARM.
 
 # Zig Info:
 current Zig version : https://ziglang.org/builds/zig-linux-x86_64-0.12.0-dev.3192+e2cbbd0c2.tar.xz\
@@ -26,3 +28,8 @@ These file will not be included in git.
 [ ] Prevent SIGTRAP at start of LLDB
 [ ] Better panics - text
 [ ] Simple File System
+
+
+# Sources
+- Intel Documentation - https://www.intel.com/content/www/us/en/developer/articles/technical/intel-sdm.html
+- A lot of other things...

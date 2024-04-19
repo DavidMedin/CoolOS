@@ -13,7 +13,7 @@
 
 // OSDEV forum about this : https://forum.osdev.org/viewtopic.php?f=2&t=33719
 
-
+// https://github.com/cfenollosa/os-tutorial
 const std = @import("std");
 const text = @import("text.zig");
 const multiboot = @import("multiboot.zig");
@@ -66,7 +66,7 @@ pub const std_options : std.Options = .{
 export var base_address : u32 = 0; // bad.
 
 pub export fn kernel_main(mbi : *multiboot.MBI) callconv(.C) void {
-
+    
     // Parse the multiboot information.
     // Specifically, the framebuffer. Or die if it doesn't work.
     multiboot.parse_multiboot_info(mbi) catch unreachable;
@@ -79,4 +79,3 @@ pub export fn kernel_main(mbi : *multiboot.MBI) callconv(.C) void {
         @breakpoint();
     }
 }
-
