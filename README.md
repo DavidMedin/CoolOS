@@ -27,6 +27,9 @@ These file will not be included in git.
 # TODO:
 [x] Reimplement in Zig.\
 [x] Use [Scalable Screen Font](https://wiki.osdev.org/Scalable_Screen_Font).
+[ ] ACPI table lookup
+[ ] 'in' and 'out' instructions to talk to ports.
+[ ] find virtio stuff
 [ ] Enable floating point numbers.
 [ ] Use SSFN2 Normal Renderer
     [ ] Make dynamic allocator with Zig std.mem
