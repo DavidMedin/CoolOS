@@ -75,7 +75,7 @@ pub export fn kernel_main(mbi : *multiboot.MBI) callconv(.C) void {
     std.log.debug("hello!", .{});
     std.log.err("Has something gone bad? Who knows?\n",.{});
     
-    while(true) {
-        @breakpoint();
-    }
+//     while(true) {
+//         @breakpoint();
+//     }
 }

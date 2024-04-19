@@ -18,6 +18,12 @@ These file will not be included in git.
     - [gitlab source](https://gitlab.com/bztsrc/scalable-font2)
     - commit 8607671c463d7a8dbf48074fb0cbeda22707def8
 
+## Third Party Packages (at least):
+- nasm (`apt` package)
+- xorriso (`apt` package)
+- qemu-system-i386 (`apt` package)
+- grub-pc-bin (`apt` package) (Without this, you may not be able to build the image [because you have a UEFI only computer].)
+
 # TODO:
 [x] Reimplement in Zig.\
 [x] Use [Scalable Screen Font](https://wiki.osdev.org/Scalable_Screen_Font).
