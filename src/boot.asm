@@ -58,7 +58,12 @@ stack_top: ; with x86, the stack grows down.
 ; Section with out kernel starting point.
 ; Some linker script (idk where) likes the word '_start', so we use it.
 section .text
+
+; arguments:  rdi, rsi, rdx, rcx, r8, r9, stack
+; return   :  rax
+
 global _start ; export this symbol to the linker.
+global in_fn, out_fn
 extern kernel_main
 _start:
     ; 32 bit protected mode on x86.
@@ -73,3 +78,40 @@ _start:
     jmp 1b
     ; =========================
 _start.end:
+
+
+; al : least significant byte of rax
+; dx : 2nd least significant word of rdx
+;  1 byte   1 byte 1 byte 1 byte 1byte 1 byte
+; [rdx    ,      |dx     ,     |dh    | dl    ]
+
+
+in_fn:
+push ebp
+mov ebp, esp
+
+push edx ; ebp-0x8
+mov edx, [ebp+0x8] ; first argument : port
+xor eax,eax
+in eax, dx
+
+pop edx
+leave
+ret
+
+out_fn:
+push ebp
+mov ebp, esp
+
+push edx
+
+; mov edx, rdi 
+; mov eax, rsi 
+mov edx, [ebp+0x8] ; first argument : port
+mov eax, [ebp+0xc] ; second argument : data
+out dx, eax
+; no output
+
+pop edx
+leave
+ret

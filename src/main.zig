@@ -65,6 +65,20 @@ pub const std_options : std.Options = .{
 
 export var base_address : u32 = 0; // bad.
 
+pub extern fn in_fn(port : u16) u32;
+pub extern fn out_fn(port : u16, data : u32) void;
+
+pub fn pci_config_read(bus : u8, device : u4, func : u3, register_offset : u8) u16 {
+    const reserved_and_enable : u32 = 0x80000000;
+    //                                         v------ 2 least significant bits of register offset are 0.
+    const address : u32 = (register_offset & 0xFC) | (func << 8) | (device << 11) | (bus << 16) | reserved_and_enable;
+
+    out_fn(0xCF8, address);
+
+    const recv : u32 = in_fn(0xCFC);
+    return recv >> ((register_offset & 2) * 8) & 0xFFFF;
+}
+
 pub export fn kernel_main(mbi : *multiboot.MBI) callconv(.C) void {
     
     // Parse the multiboot information.
