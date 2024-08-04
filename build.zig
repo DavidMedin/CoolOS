@@ -9,10 +9,10 @@ const Feature = @import("std").Target.Cpu.Feature;
 pub fn build(b: *std.Build) void {
 
     const features = Target.x86.Feature;
- 
+
     var disabled_features = Feature.Set.empty;
     var enabled_features = Feature.Set.empty;
- 
+
     // Yoinked from the Zig Bare Bones guide. One of these is needed to not
     //  allow floating points.
     // Later, I'll want to initialize the floating point stuff, but until then, no.
@@ -23,7 +23,7 @@ pub fn build(b: *std.Build) void {
     disabled_features.addFeature(@intFromEnum(features.avx));
     disabled_features.addFeature(@intFromEnum(features.avx2));
     enabled_features.addFeature(@intFromEnum(features.soft_float));
- 
+
 
     // Standard target options allows the person running `zig build` to choose
     // what target to build for. Here we do not override the defaults, which
@@ -63,18 +63,18 @@ pub fn build(b: *std.Build) void {
     const assemble_step = b.addSystemCommand(&.{"nasm"});
     assemble_step.addArgs(&.{ "-g", "-f", "elf32", "-o" });
     const asm_obj = assemble_step.addOutputFileArg("boot.o");
-    assemble_step.addFileArg(.{.path = "src/boot.asm"});
+    assemble_step.addFileArg(b.path("src/boot.asm"));
 
     // https://github.com/hjl-tools/x86-psABI/wiki/x86-64-psABI-1.0.pdf : a note about .code_model = .kernel
     const exe = b.addExecutable(.{
         .name = "coolos.bin",
-        .root_source_file = .{ .path = "src/main.zig" },
+        .root_source_file = b.path("src/main.zig" ),
         .target = target,
         .optimize = optimize,
         .code_model = .kernel,
     });
-    exe.linker_script = .{ .path = "src/linker.ld" };
-    exe.addSystemIncludePath(.{.path = "src/third-party/"});
+    exe.linker_script = b.path("src/linker.ld" );
+    exe.addSystemIncludePath(b.path( "src/third-party/"));
 
     exe.addObjectFile(asm_obj); // use output of assembing the boot assembly.
 

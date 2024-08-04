@@ -17,13 +17,14 @@ result
 # Cheers!
 # -andrewrk
 
-zig-cache/
+.zig-cache/
 zig-out/
+.gdb_history
 /release/
 /debug/
 /build/
 /build-*/
 /docgen_tmp/
 
-
+**/*.pdf
 zig-tools
