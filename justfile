@@ -4,7 +4,7 @@ default:
 @clean:
     rm isodir/boot/coolos.bin || true
     rm -rf zig-out || true
-    rm -rf zig-cache || true
+    rm -rf .zig-cache || true
 
 # Use an actual build system (Zig) to build.
 build: clean # the dep. clean is to force zig to recompile.

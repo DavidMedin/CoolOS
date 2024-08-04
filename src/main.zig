@@ -35,7 +35,7 @@ fn kernelLogFn(comptime level: std.log.Level, comptime scope: @TypeOf(.EnumLiter
 
         const prefix = "[" ++ comptime level.asText() ++ "] ";
         const fmt_string: []u8 = std.fmt.bufPrint(&print_buffer, prefix ++ format, args) catch unreachable;
-        //const render_string  = "hello";
+        print_buffer[fmt_string.len] = 0;
         var cursor : *u8 = @ptrCast( @constCast( fmt_string ) );
         while( cursor.* != 0) {
             const codepoint = text.ssfn_utf8(@ptrCast( &cursor ));
@@ -71,24 +71,30 @@ pub extern fn out_fn(port : u16, data : u32) void;
 pub fn pci_config_read(bus : u8, device : u4, func : u3, register_offset : u8) u16 {
     const reserved_and_enable : u32 = 0x80000000;
     //                                         v------ 2 least significant bits of register offset are 0.
-    const address : u32 = (register_offset & 0xFC) | (func << 8) | (device << 11) | (bus << 16) | reserved_and_enable;
+    const address : u32 = (register_offset & 0xFC) | (@as(u32,func) << 8) | (@as(u32,device) << 11) | (@as(u32,bus) << 16) | reserved_and_enable;
 
     out_fn(0xCF8, address);
 
     const recv : u32 = in_fn(0xCFC);
-    return recv >> ((register_offset & 2) * 8) & 0xFFFF;
+    return @truncate( (recv >> (@as(u5, @truncate( register_offset & 2)) * 8)) & 0xFFFF );
 }
 
 pub export fn kernel_main(mbi : *multiboot.MBI) callconv(.C) void {
-    
+
     // Parse the multiboot information.
     // Specifically, the framebuffer. Or die if it doesn't work.
     multiboot.parse_multiboot_info(mbi) catch unreachable;
-    
+
     // Write to the screen!
-    std.log.debug("hello!", .{});
-    std.log.err("Has something gone bad? Who knows?\n",.{});
-    
+    std.log.debug("Hello!", .{});
+    std.log.err("Has something gone bad? Who knows?",.{});
+    const vendor_id : u16 = pci_config_read(0,0,0,0);
+    if ( vendor_id == 0xFFFF ) {
+        std.log.err("No device '0' :(", .{});
+    }else {
+        std.log.info("Device '0' is from vendor {x}", .{vendor_id});
+    }
+
 //     while(true) {
 //         @breakpoint();
 //     }
