@@ -130,12 +130,23 @@ pub fn parse_multiboot_info(mbi : *MBI) MBErr!void {
 
         // Frame buffer to ssfn dest.
         text.ssfn_dst = .{
+            // Pointer to the beginning of the framebuffer.
             .ptr = @ptrFromInt( @as(usize, @intCast( fb_info.*.fmbuff_addr ) ) ),
+
+            // Pitch : number of bytes in each row.
             .p = @intCast( fb_info.*.fmbuff_pitch ),
+
+            // Width : pixels in each row.
             .w = @intCast( fb_info.*.fmbuff_width ),
+
+            // Height : pixels in each column.
             .h = @intCast( fb_info.*.fmbuff_height ),
+
+            // Colors.
             .fg = 0xeeeeeeee,
             .bg = 0x0,
+
+            // Where to render the next character?
             .x = @intCast( 0 ),
             .y = @intCast( 0 )
         };
