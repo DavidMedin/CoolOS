@@ -17,8 +17,11 @@
 const std = @import("std");
 const text = @import("text.zig");
 const multiboot = @import("multiboot.zig");
+const pci = @import("pci.zig");
 
-
+// Defines what happens when Zig panics.
+// Panics happen when @panic() is 'called' or when the 'unreachable' keyword is reached.
+// It just set a breakpoint so a debugger can look at the stacktrace.
 pub fn panic(msg: []const u8, error_return_trace: ?*std.builtin.StackTrace, something : ?usize) noreturn {
     _ = msg;
     _ = error_return_trace;
@@ -28,56 +31,15 @@ pub fn panic(msg: []const u8, error_return_trace: ?*std.builtin.StackTrace, some
     }
 }
 
-var print_buffer = [_]u8{0} ** 4096;
-// Defines how std.log.error, std.log.debug, and friends function.
-fn kernelLogFn(comptime level: std.log.Level, comptime scope: @TypeOf(.EnumLiteral), comptime format: []const u8, args: anytype) void {
-        _ = scope;
 
-        const prefix = "[" ++ comptime level.asText() ++ "] ";
-        const fmt_string: []u8 = std.fmt.bufPrint(&print_buffer, prefix ++ format, args) catch unreachable;
-        print_buffer[fmt_string.len] = 0;
-        var cursor : *u8 = @ptrCast( @constCast( fmt_string ) );
-        while( cursor.* != 0) {
-            const codepoint = text.ssfn_utf8(@ptrCast( &cursor ));
-
-            // If newline
-            if(codepoint == 10) {
-
-                text.ssfn_dst.y += text.ssfn_src.*.height; // Move one line down, (new line)
-                text.ssfn_dst.x = 0; // and reset to left side of screen (carrige return)
-
-            }else {
-
-                const result : i32 = text.ssfn_putc( codepoint );
-                if(result != 0){
-                    //https://gitlab.com/bztsrc/scalable-font2/blob/master/docs/API.md#error-codes
-                    @panic("fonts are bad. I am good at errors.");
-                }
-
-            }
-        }
-        text.ssfn_dst.y += text.ssfn_src.*.height; // Move one line down, (new line)
-        text.ssfn_dst.x = 0; // and reset to left side of screen (carrige return)
-    }
+// Tells the Zig Standard Library that std.log.[debug, err, info,...] should use kernel_log_fn for printing.
+// It has to be in main.zig :(
 pub const std_options : std.Options = .{
-    .logFn = kernelLogFn
+    .logFn = text.kernel_log_fn
 };
 
 export var base_address : u32 = 0; // bad.
 
-pub extern fn in_fn(port : u16) u32;
-pub extern fn out_fn(port : u16, data : u32) void;
-
-pub fn pci_config_read(bus : u8, device : u4, func : u3, register_offset : u8) u16 {
-    const reserved_and_enable : u32 = 0x80000000;
-    //                                         v------ 2 least significant bits of register offset are 0.
-    const address : u32 = (register_offset & 0xFC) | (@as(u32,func) << 8) | (@as(u32,device) << 11) | (@as(u32,bus) << 16) | reserved_and_enable;
-
-    out_fn(0xCF8, address);
-
-    const recv : u32 = in_fn(0xCFC);
-    return @truncate( (recv >> (@as(u5, @truncate( register_offset & 2)) * 8)) & 0xFFFF );
-}
 
 pub export fn kernel_main(mbi : *multiboot.MBI) callconv(.C) void {
 
@@ -85,14 +47,28 @@ pub export fn kernel_main(mbi : *multiboot.MBI) callconv(.C) void {
     // Specifically, the framebuffer. Or die if it doesn't work.
     multiboot.parse_multiboot_info(mbi) catch unreachable;
 
+    text.init_printing();
+
     // Write to the screen!
     std.log.debug("Hello!", .{});
     std.log.err("Has something gone bad? Who knows?",.{});
-    const vendor_id : u16 = pci_config_read(0,0,0,0);
-    if ( vendor_id == 0xFFFF ) {
-        std.log.err("No device '0' :(", .{});
-    }else {
-        std.log.info("Device '0' is from vendor {x}", .{vendor_id});
+
+    for ( @as(u4,0) ..std.math.maxInt(u4)) |device_off_usize| {
+        const device_off : u4 = @truncate(device_off_usize);
+        const pci_id = pci.PciId{.pci_bus = 0, .pci_device = device_off};
+
+        if (pci_id.get_info()) |pci_dev| {
+
+            if( text.format_object(pci_dev) ) |fmtd| {
+                defer text.GLOBAL_ALLOCATOR.?.free(fmtd);
+                std.log.debug("PCI Device 0x{x} : {s}", .{device_off, fmtd});
+            } else |err| {
+                std.log.err("PCI Device 0x{x} : Failed to format string: {}", .{device_off, err});
+            }
+
+        }else{
+            std.log.warn("PCI Device 0x{x} is not a device.", .{device_off});
+        }
     }
 
 //     while(true) {

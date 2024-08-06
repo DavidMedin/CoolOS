@@ -96,7 +96,7 @@ pub const MBErr = error {
 };
 
 pub fn parse_multiboot_info(mbi : *MBI) MBErr!void {
-    
+
     var tag_head : *TagHeader = @ptrFromInt( @intFromPtr(mbi) + @sizeOf(MBI) );
     var tag_addr : u32 = @intFromPtr(tag_head);
 
@@ -127,7 +127,7 @@ pub fn parse_multiboot_info(mbi : *MBI) MBErr!void {
     // Done looking for tags, now so stuff with these tags.
 
     if(fb_info_maybe) |fb_info| {
-        
+
         // Frame buffer to ssfn dest.
         text.ssfn_dst = .{
             .ptr = @ptrFromInt( @as(usize, @intCast( fb_info.*.fmbuff_addr ) ) ),
@@ -140,7 +140,7 @@ pub fn parse_multiboot_info(mbi : *MBI) MBErr!void {
             .y = @intCast( 0 )
         };
 
- 
+
     }else {
         return MBErr.NoFramebuffer;
     }

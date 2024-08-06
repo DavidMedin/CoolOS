@@ -15,7 +15,7 @@ section .multiboot2
     ; Defines (with .tag_tag_types) what information structs the kernel gets with the MBI.
     align 8 ; align 8 bytes
     tags.MBI: ; MultiBoot Information
-    .tag_type: dw 1 
+    .tag_type: dw 1
     .tag_flags: dw 1 ; means it must have these tags
     .tag_size_val: equ (tags.MBI.end - tags.MBI)
     .tag_size: dd .tag_size_val
@@ -40,7 +40,7 @@ section .multiboot2
     .tag_size: dd 8
 tags.end:
 
-    
+
 ; This is our 'stack' section. It will be 16 KiB.
 ; BSS is 'Block Ended by Symbol'. Not sure what that means, but
 ; this stack has a symbol at the top and bottom.
@@ -85,7 +85,7 @@ _start.end:
 ;  1 byte   1 byte 1 byte 1 byte 1byte 1 byte
 ; [rdx    ,      |dx     ,     |dh    | dl    ]
 
-
+; These functions (in_fn, out_fn) are used to talk to PCI, and thus Virtio.
 in_fn:
 push ebp
 mov ebp, esp
@@ -105,8 +105,8 @@ mov ebp, esp
 
 push edx
 
-; mov edx, rdi 
-; mov eax, rsi 
+; mov edx, rdi
+; mov eax, rsi
 mov edx, [ebp+0x8] ; first argument : port
 mov eax, [ebp+0xc] ; second argument : data
 out dx, eax
