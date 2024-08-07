@@ -1,0 +1,16 @@
+{
+  "format_on_save": "off",
+  "languages": {
+    "Zig": {
+      "language_servers": ["zls"]
+    }
+  },
+  "lsp": {
+    "zls": {
+      // Currently doesn't work : https://github.com/zed-industries/zed/issues/6767
+      "binary": {
+        "path": "/home/david/projects/cool-os/zig-tools/zls/zig-out/bin/zls"
+      }
+    }
+  }
+}

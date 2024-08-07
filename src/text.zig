@@ -52,17 +52,19 @@ fn render_fixed(string : []u8) void {
 fn render_scroll(string : []u8) void {
     // [1] Count the number of newlines.
     // TODO: Count the number of word wraps.
-    const line_height = ssfn_src.*.height;
-    const framebuffer_height = ssfn_dst.h * line_height;
+    const line_height_px = ssfn_src.*.height;
+    const framebuffer_height_px = ssfn_dst.h * line_height_px;
 
-    var lines_needed : u32 = blk: {
+    const lines_needed : u32 = blk: {
         var lines_needed : u32 = 0;
-        var pixel_cursor : u32 = ssfn_dst.y;
+        var pixel_cursor_px = ssfn_dst.y;
 
-        for (string) |char| {
-            if ( char == 10 ) {
-                pixel_cursor += line_height;
-                if ( ( pixel_cursor + line_height ) > framebuffer_height ) {
+        var cursor : *u8 = @ptrCast( @constCast( string ) );
+        while( cursor.* != 0 ) {
+            const codepoint = ssfn.ssfn_utf8(@ptrCast( &cursor )); // iterates the cursor.
+            if ( codepoint == 10 ) {
+                pixel_cursor_px += line_height_px;
+                if ( ( pixel_cursor_px + line_height_px ) > framebuffer_height_px ) {
                     lines_needed += 1;
                 }
             }
@@ -73,40 +75,15 @@ fn render_scroll(string : []u8) void {
 
     // [2] Move the buffer up the neccessary number of newlines.
     {
-        const framebuffer_length_bytes
-        const framebuffer_src : []u8 = ssfn_dst.ptr[0..]
+        const framebuffer_length_bytes : usize =@intCast( ssfn_dst.p * ssfn_dst.h );
+        const framebuffer_dst : []u8 = ssfn_dst.ptr[0..framebuffer_length_bytes];
+        const framebuffer_src : []u8 = framebuffer_dst[(lines_needed * ssfn_dst.p)..];
+        std.mem.copyBackwards(u8, framebuffer_dst, framebuffer_src);
     }
-    // std.mem.copyBackwards(ssfn_dst.ptr, dest: []T, source: []const T)
 
-    // [3] Render the text.
-    var cursor : *u8 = @ptrCast( @constCast( string ) );
-    while( cursor.* != 0 ) {
-        const codepoint = ssfn.ssfn_utf8(@ptrCast( &cursor ));
+    ssfn_dst.y -= @intCast( lines_needed );
 
-        // If newline
-        if(codepoint == 10) {
-
-            ssfn_dst.y += ssfn_src.*.height; // Move one line down, (new line)
-            ssfn_dst.x = 0; // and reset to left side of screen (carrige return)
-
-            // If this line is after or intersecting the bottom of the screen, then...
-            if ( (ssfn_dst.y + ssfn_src.*.height) > (ssfn_dst.h * ssfn_src.*.height) ) {
-                // Move the screen!
-                
-            }
-
-        }else {
-
-            const result : i32 = ssfn.ssfn_putc( codepoint );
-            if(result != 0){
-                //https://gitlab.com/bztsrc/scalable-font2/blob/master/docs/API.md#error-codes
-                @panic("fonts are bad. I am good at errors.");
-            }
-
-        }
-    }
-    ssfn_dst.y += ssfn.ssfn_src.*.height; // Move one line down, (new line)
-    ssfn_dst.x = 0; // and reset to left side of screen (carrige return)
+    render_fixed(string);
 }
 
 // Formatting and std.log logging.
