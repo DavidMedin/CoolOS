@@ -51,24 +51,9 @@ pub export fn kernel_main(mbi : *multiboot.MBI) callconv(.C) void {
 
     // Write to the screen!
     std.log.debug("Hello!", .{});
-    std.log.err("Has something gone bad? Who knows?",.{});
 
-    for ( @as(u4,0) ..std.math.maxInt(u4)) |device_off_usize| {
-        const device_off : u4 = @truncate(device_off_usize);
-        const pci_id = pci.PciId{.pci_bus = 0, .pci_device = device_off};
-
-        if (pci_id.get_info()) |pci_dev| {
-
-            if( text.format_object(pci_dev) ) |fmtd| {
-                defer text.GLOBAL_ALLOCATOR.?.free(fmtd);
-                std.log.debug("PCI Device 0x{x} : {s}", .{device_off, fmtd});
-            } else |err| {
-                std.log.err("PCI Device 0x{x} : Failed to format string: {}", .{device_off, err});
-            }
-
-        }else{
-            std.log.warn("PCI Device 0x{x} is not a device.", .{device_off});
-        }
+    for (0..100) |index| {
+        std.log.debug("{}", .{index});
     }
 
 //     while(true) {

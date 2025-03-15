@@ -53,7 +53,7 @@ fn render_scroll(string : []u8) void {
     // [1] Count the number of newlines.
     // TODO: Count the number of word wraps.
     const line_height_px = ssfn_src.*.height;
-    const framebuffer_height_px = ssfn_dst.h * line_height_px;
+    const framebuffer_height_px = ssfn_dst.h;
 
     const lines_needed : u32 = blk: {
         var lines_needed : u32 = 0;
@@ -70,6 +70,9 @@ fn render_scroll(string : []u8) void {
             }
         }
 
+        if ( ( pixel_cursor_px + line_height_px ) > framebuffer_height_px ) {
+            lines_needed += 1;
+        }
         break :blk lines_needed;
     };
 
