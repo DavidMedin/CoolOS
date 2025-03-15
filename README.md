@@ -4,14 +4,7 @@ This is a homemade operating system for `i386` (aka AI-32 [aka 'Intel Architectu
 In other words, a 32-bit operating system for x86 machines, not ARM.
 
 # Zig Info:
-current Zig version : https://ziglang.org/builds/zig-linux-x86_64-0.14.0-dev.839+a931bfada.tar.xz\
-current Zls version : commit  dfe958e4d1a9ba503cfafd39164f090daea70109 [tree](https://github.com/zigtools/zls/tree/ dfe958e4d1a9ba503cfafd39164f090daea70109)\
-The `zig` tools should be installed in a file system like this:
-- `zig-tools`
-    - `zig-linux` - just a renamed zig prebuilt, like extracted from the `zig-linux...tar.xz` above.
-    - `zls` - a cloned, checkout out, and built `zls` repo.
-
-These file will not be included in git.
+Zig version : 0.15 (master)
 
 ## Third Party Code:
 - SSFN ( Scalable Screen FoNt )
