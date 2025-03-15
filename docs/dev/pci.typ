@@ -19,7 +19,7 @@ These don't live in RAM (I think) as it would slow down the CPU. So, maybe all d
 = Configuration
 This memory space holds just a bunch of PCI Configuration Headers.
 / PCI Configuration Headers : A `256` byte data structure holding information about the device.
-/ Cycle : An address as it appears on the PCI bus. There are two two types of cycles:
+/ Cycle : An address as it appears on the PCI bus. There are two types of cycles:
 / Cycle Type 0 : A cycle for a device that is on the current PCI bus.
 / Cycle Type 1 : A cycle for a device that is on _another_ PCI bus. All devices except for PCI-PCI Bridges ignore this cycle.
 
@@ -57,4 +57,5 @@ Devices cannot use this space until the _command_ field in the Configuration Hea
 
 
 = PCIe - Peripheral Component Interconnect Express
-More modern version of PCI. Allows bigger memory space, and memeory mappings into physical memory space. I.E, no `in`/`out` instructions.
+More modern version of PCI. Allows bigger memory space, and memory mappings into physical memory space. I.E, no `in`/`out` instructions.
+Hard to implement I hear, so maybe don't.
