@@ -40,7 +40,7 @@ pub const std_options : std.Options = .{
 
 export var base_address : u32 = 0; // bad.
 
-
+// Called from boot.asm
 pub export fn kernel_main(mbi : *multiboot.MBI) callconv(.C) void {
 
     // Parse the multiboot information.
