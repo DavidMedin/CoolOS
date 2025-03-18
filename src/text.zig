@@ -80,11 +80,16 @@ fn render_scroll(string : []u8) void {
     {
         const framebuffer_length_bytes : usize =@intCast( ssfn_dst.p * ssfn_dst.h );
         const framebuffer_dst : []u8 = ssfn_dst.ptr[0..framebuffer_length_bytes];
-        const framebuffer_src : []u8 = framebuffer_dst[(lines_needed * ssfn_dst.p)..];
-        std.mem.copyBackwards(u8, framebuffer_dst, framebuffer_src);
+        const framebuffer_src : []u8 = framebuffer_dst[(lines_needed * line_height_px * ssfn_dst.p)..];
+        std.mem.copyForwards(u8, framebuffer_dst, framebuffer_src);
+
+        // Set the color of the new lines (on the bottom of the screen) to black. Otherwise, we'd be drawing on top of the old line.
+        const new_lines_needed_bytes = framebuffer_length_bytes - ( lines_needed * line_height_px * ssfn_dst.p );
+        const last_lines : []u8 = framebuffer_dst[new_lines_needed_bytes..];
+        @memset(last_lines, 0);
     }
 
-    ssfn_dst.y -= @intCast( lines_needed );
+    ssfn_dst.y -= @intCast( lines_needed * line_height_px );
 
     render_fixed(string);
 }

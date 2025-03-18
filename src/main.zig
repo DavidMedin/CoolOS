@@ -52,7 +52,7 @@ pub export fn kernel_main(mbi : *multiboot.MBI) callconv(.C) void {
     // Write to the screen!
     std.log.debug("Hello!", .{});
 
-    for (0..100) |index| {
+    for (0..101) |index| {
         std.log.debug("{}", .{index});
     }
 
