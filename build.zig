@@ -5,7 +5,7 @@ const Feature = @import("std").Target.Cpu.Feature;
 // Although this function looks imperative, note that its job is to
 // declaratively construct a build graph that will be executed by an external
 // runner.
-pub fn build(b: *std.Build) void {
+pub fn build(b: *std.Build) !void {
 
     const features = Target.x86.Feature;
 
@@ -64,6 +64,7 @@ pub fn build(b: *std.Build) void {
     const pretty = b.dependency("pretty", .{.target=target, .optimize=optimize});
     exe.root_module.addImport("pretty", pretty.module("pretty"));
 
+
     exe.linker_script = b.path("src/linker.ld" );
     exe.addSystemIncludePath(b.path( "src/third-party/"));
 
@@ -73,10 +74,14 @@ pub fn build(b: *std.Build) void {
     cp_file_step.addArtifactArg(exe);
     cp_file_step.addArg("isodir/boot");
 
-    const bake_iso = b.addSystemCommand(&.{"grub-mkrescue"});
+    // Test if grub-mkrescue or i686-elf-grub-mkrescue exists.
+    const mkrescue = try b.findProgram(&.{"grub-mkrescue", "i686-elf-grub-mkrescue"}, &.{});
+
+    const bake_iso = b.addSystemCommand(&.{mkrescue});
     bake_iso.addArg("-o");
     const img_path = bake_iso.addOutputFileArg("coolos.img");
     bake_iso.addArg("isodir");
+    // bake_iso.addArg("-v");
     bake_iso.step.dependOn(&cp_file_step.step);
 
 

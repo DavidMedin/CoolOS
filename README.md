@@ -3,6 +3,8 @@
 This is a homemade operating system for `i386` (aka AI-32 [aka 'Intel Architecture 32-bit'] ) systems.\
 In other words, a 32-bit operating system for x86 machines, not ARM.
 
+Some places will say `i686`, but it almost means the same thing. Just a slight super-set of i386.
+
 # Zig Info:
 Zig version : 0.15 (master)
 
@@ -12,10 +14,16 @@ Zig version : 0.15 (master)
     - commit 8607671c463d7a8dbf48074fb0cbeda22707def8
 
 ## Third Party Packages (at least):
+#### Linux
 - nasm (`apt` package)
 - xorriso (`apt` package)
 - qemu-system-i386 (`apt` package)
 - grub-pc-bin (`apt` package) (Without this, you may not be able to build the image [because you have a UEFI only computer].)
+#### MacOS (`brew`)
+- nasm
+- xorriso
+- qemu
+- i686-elf-grub
 
 # TODO:
 [x] Reimplement in Zig.\
