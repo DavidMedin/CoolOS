@@ -18,6 +18,7 @@ const std = @import("std");
 const text = @import("text.zig");
 const multiboot = @import("multiboot.zig");
 const pci = @import("pci.zig");
+const ps2 = @import("ps2-keyboard.zig");
 
 // Defines what happens when Zig panics.
 // Panics happen when @panic() is 'called' or when the 'unreachable' keyword is reached.
@@ -52,26 +53,14 @@ pub export fn kernel_main(mbi : *multiboot.MBI) callconv(.C) void {
     // Write to the screen!
     std.log.debug("Hello!", .{});
     std.log.err("Has something gone bad? Who knows?",.{});
+    std.log.info("ps2 data vvvv", .{});
 
-    for ( @as(u4,0) ..std.math.maxInt(u4)) |device_off_usize| {
-        const device_off : u4 = @truncate(device_off_usize);
-        const pci_id = pci.PciId{.pci_bus = 0, .pci_device = device_off};
-
-        if (pci_id.get_info()) |pci_dev| {
-
-            if( text.format_object(pci_dev) ) |fmtd| {
-                defer text.GLOBAL_ALLOCATOR.?.free(fmtd);
-                std.log.debug("PCI Device 0x{x} : {s}", .{device_off, fmtd});
-            } else |err| {
-                std.log.err("PCI Device 0x{x} : Failed to format string: {}", .{device_off, err});
-            }
-
-        }else{
-            std.log.warn("PCI Device 0x{x} is not a device.", .{device_off});
+    while(true) {
+        if( ps2.ps2_poll() ) |data| {
+            std.log.info("{}", .{data});
         }
+
     }
 
-//     while(true) {
-//         @breakpoint();
-//     }
+
 }
