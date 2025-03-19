@@ -1,6 +1,9 @@
 // Defined in boot.asm
-pub extern fn in_fn(port : u16) u32;
-pub extern fn out_fn(port : u16, data : u32) void;
+extern fn in_fn(port : u16) u32;
+extern fn out_fn(port : u16, data : u32) void;
+
+const keycodes = @import("third-party/ps2-keyboard/src/pc_keyboard.zig");
+pub usingnamespace keycodes;
 
 // PS/2 Controoler IO Ports
 // IO Port | Acess Type | Purpose
@@ -8,6 +11,10 @@ pub extern fn out_fn(port : u16, data : u32) void;
 // 0x60    | Read/Write | Data Port
 // 0x64    | Read       | Status Register
 // 0x64    | Write      | Command Register
+//
+// Keyboard Mapping : https://wiki.osdev.org/PS/2_Keyboard
+// Electrical Desc and History : https://wiki.osdev.org/PS/2
+// Controller Info (ports and such [actually useful]) : https://wiki.osdev.org/%228042%22_PS/2_Controller
 
 const StatusRegister = packed struct(u32) {
     output_buffer_full : bool,
@@ -22,7 +29,7 @@ const StatusRegister = packed struct(u32) {
     _padding_bits : u23
 };
 
-pub fn ps2_poll() ?u32 {
+pub fn poll() ?u32 {
     // poll if there is data to grab.
     const recv : StatusRegister = @bitCast(in_fn(0x64));
     if (recv.output_buffer_full) {

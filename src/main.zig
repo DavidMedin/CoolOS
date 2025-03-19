@@ -55,9 +55,14 @@ pub export fn kernel_main(mbi : *multiboot.MBI) callconv(.C) void {
     std.log.err("Has something gone bad? Who knows?",.{});
     std.log.info("ps2 data vvvv", .{});
 
+    var keyboard = ps2.Keyboard.init(.ScancodeSet2, .Us104Key, .MapLettersToUnicode);
     while(true) {
-        if( ps2.ps2_poll() ) |data| {
-            std.log.info("{}", .{data});
+        if( ps2.poll() ) |data| {
+            if ( keyboard.addByte(@as(u8,@truncate(data))) ) |kv| {
+                std.log.info("{?}", .{kv});
+            }else |e| {
+                std.log.err("ps2 decoding failed : {}", .{e});
+            }
         }
 
     }
