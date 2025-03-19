@@ -96,7 +96,7 @@ fn render_scroll(string : []u8) void {
 
 // Formatting and std.log logging.
 
-var print_buffer = [_]u8{0} ** 0x1000;
+var print_buffer = [_]u8{0} ** 0x10000;
 
 // This allocator uses the print_buffer too.
 var GLOBAL_FBA : ?std.heap.FixedBufferAllocator = null;
