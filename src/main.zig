@@ -59,18 +59,17 @@ pub export fn kernel_main(mbi : *multiboot.MBI) callconv(.C) void {
     while(true) {
         if( ps2.poll() ) |data| {
             const byte = @as(u8,@truncate(data));
-            // std.log.info("raw byte : 0x{x}", .{data});
-            // std.log.info("trunc byte : 0x{x}", .{byte});
 
             if ( keyboard.addByte(byte) ) |kv| {
                 if(kv == null) {continue;}
                 if ( kv.?.state == .Down ) {
                     if ( keyboard.processKeyevent(kv.?) ) |dk| {
-                        // std.debug.print("{}", .{dk.Unicode});
-                        text.render_fixed(@constCast( dk.Unicode ));
+                        const rest_of_str = text.render_char_from_string(@constCast( dk.Unicode ));
+                        if(rest_of_str != null){
+                            @panic("this should be null :|");
+                        }
                     }
                 }
-                // std.log.info("{?}", .{kv});
             }else |e| {
                 std.log.err("ps2 decoding failed : {}", .{e});
             }

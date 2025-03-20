@@ -19,11 +19,12 @@ export var ssfn_src : *ssfn.ssfn_font_t = @ptrCast( @constCast( @embedFile("reso
 // SFN Docs are wrong, ssfn_dist is a ssfn_buf_t, not a *ssfn_buf_t!
 export var ssfn_dst : ssfn.ssfn_buf_t = undefined;
 
-/// Render one character from the given string.
-/// Returns a pointer into the string for the next character to be rendered.
+/// Render one codepoint from the given string.
+/// Returns a slice that contains the rest of the string after the first codepoint.
 /// Returns null if ended the string.
-pub fn render_char_from_string(string : []u8) ?*u8 {
+pub fn render_char_from_string(string : []u8) ?[]u8 {
     var cursor : *u8 = @ptrCast( @constCast( string ) );
+    const start : usize = @intFromPtr(cursor);
     const codepoint = ssfn.ssfn_utf8(@ptrCast( &cursor ));
 
     // If newline
@@ -44,33 +45,20 @@ pub fn render_char_from_string(string : []u8) ?*u8 {
     if(cursor.* == 0){
         return null;
     }
-    return cursor;
+
+    const end : usize = @intFromPtr(cursor);
+    const diff : usize = end - start;
+    return string[diff..];
 
 }
 
 // The most basic text rendering strategy : write lines one after another and don't scroll.
-pub fn render_fixed(string : []u8) void {
-    var cursor : *u8 = @ptrCast( @constCast( string ) );
-    while( cursor.* != 0 ) {
-        const codepoint = ssfn.ssfn_utf8(@ptrCast( &cursor ));
-
-        // If newline
-        if(codepoint == 10) {
-
-            ssfn_dst.y += ssfn_src.*.height; // Move one line down, (new line)
-            ssfn_dst.x = 0; // and reset to left side of screen (carrige return)
-
-        }else {
-
-            const result : i32 = ssfn.ssfn_putc( codepoint );
-            if(result != 0){
-                //https://gitlab.com/bztsrc/scalable-font2/blob/master/docs/API.md#error-codes
-                @panic("fonts are bad. I am good at errors.");
-            }
-
-        }
+fn render_fixed(string : []u8) void {
+    var cursor : []u8 = string;
+    while (render_char_from_string(cursor)) |new_cursor|  {
+        cursor = new_cursor;
     }
-    // render_char_from_string(string: []u8)
+
     ssfn_dst.y += ssfn.ssfn_src.*.height; // Move one line down, (new line)
     ssfn_dst.x = 0; // and reset to left side of screen (carrige return)
 }
