@@ -58,7 +58,10 @@ pub export fn kernel_main(mbi : *multiboot.MBI) callconv(.C) void {
 
     while(true) {
 
-        const poll_res = keyboard.poll() catch unreachable;
+        const poll_res = keyboard.poll() catch {
+            text.render_scroll(@constCast("wack"));
+            continue;
+        };
         if(poll_res) |keycode| {
             const cursor = text.render_char_from_string(@constCast( keycode.Unicode ));
             if(cursor != null) {

@@ -38,7 +38,13 @@ pub fn render_char_from_string(string : []u8) ?[]u8 {
         const result : i32 = ssfn.ssfn_putc( codepoint );
         if(result != 0){
             //https://gitlab.com/bztsrc/scalable-font2/blob/master/docs/API.md#error-codes
-            @panic("fonts are bad. I am good at errors.");
+            const err = "0";
+            var ptr : *u8 = @ptrCast(@constCast(err));
+            const point = ssfn.ssfn_utf8(@ptrCast(&ptr));
+            const last_res = ssfn.ssfn_putc(point);
+            if (last_res != 0) {
+                @panic("Failed to print '0'? Things must be bad lol.");
+            }
         }
 
     }
@@ -67,7 +73,7 @@ fn render_fixed(string : []u8) void {
 // The next most obvious rendering strategy : when the text reaches the bottom of the screen, scroll.
 // TODO: word wrapping.
 // TODO: Consider when `string` is way bigger than the framebuffer.
-fn render_scroll(string : []u8) void {
+pub fn render_scroll(string : []u8) void {
     // [1] Count the number of newlines.
     // TODO: Count the number of word wraps.
     const line_height_px = ssfn_src.*.height;
