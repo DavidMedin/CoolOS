@@ -55,14 +55,26 @@ pub export fn kernel_main(mbi : *multiboot.MBI) callconv(.C) void {
     std.log.err("Has something gone bad? Who knows?",.{});
     std.log.info("ps2 data vvvv", .{});
 
-    var keyboard = ps2.Keyboard.init(.ScancodeSet2, .Us104Key, .MapLettersToUnicode);
+    var keyboard = ps2.Keyboard.init(.ScancodeSet1, .Us104Key, .MapLettersToUnicode);
     while(true) {
         if( ps2.poll() ) |data| {
-            if ( keyboard.addByte(@as(u8,@truncate(data))) ) |kv| {
-                std.log.info("{?}", .{kv});
+            const byte = @as(u8,@truncate(data));
+            // std.log.info("raw byte : 0x{x}", .{data});
+            // std.log.info("trunc byte : 0x{x}", .{byte});
+
+            if ( keyboard.addByte(byte) ) |kv| {
+                if(kv == null) {continue;}
+                if ( kv.?.state == .Down ) {
+                    if ( keyboard.processKeyevent(kv.?) ) |dk| {
+                        // std.debug.print("{}", .{dk.Unicode});
+                        text.render_fixed(@constCast( dk.Unicode ));
+                    }
+                }
+                // std.log.info("{?}", .{kv});
             }else |e| {
                 std.log.err("ps2 decoding failed : {}", .{e});
             }
+
         }
 
     }

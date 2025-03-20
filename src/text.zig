@@ -19,8 +19,37 @@ export var ssfn_src : *ssfn.ssfn_font_t = @ptrCast( @constCast( @embedFile("reso
 // SFN Docs are wrong, ssfn_dist is a ssfn_buf_t, not a *ssfn_buf_t!
 export var ssfn_dst : ssfn.ssfn_buf_t = undefined;
 
+/// Render one character from the given string.
+/// Returns a pointer into the string for the next character to be rendered.
+/// Returns null if ended the string.
+pub fn render_char_from_string(string : []u8) ?*u8 {
+    var cursor : *u8 = @ptrCast( @constCast( string ) );
+    const codepoint = ssfn.ssfn_utf8(@ptrCast( &cursor ));
+
+    // If newline
+    if(codepoint == 10) { // TODO: render a x10 glyph instead?
+
+        ssfn_dst.y += ssfn_src.*.height; // Move one line down, (new line)
+        ssfn_dst.x = 0; // and reset to left side of screen (carrige return)
+
+    }else {
+
+        const result : i32 = ssfn.ssfn_putc( codepoint );
+        if(result != 0){
+            //https://gitlab.com/bztsrc/scalable-font2/blob/master/docs/API.md#error-codes
+            @panic("fonts are bad. I am good at errors.");
+        }
+
+    }
+    if(cursor.* == 0){
+        return null;
+    }
+    return cursor;
+
+}
+
 // The most basic text rendering strategy : write lines one after another and don't scroll.
-fn render_fixed(string : []u8) void {
+pub fn render_fixed(string : []u8) void {
     var cursor : *u8 = @ptrCast( @constCast( string ) );
     while( cursor.* != 0 ) {
         const codepoint = ssfn.ssfn_utf8(@ptrCast( &cursor ));
@@ -41,6 +70,7 @@ fn render_fixed(string : []u8) void {
 
         }
     }
+    // render_char_from_string(string: []u8)
     ssfn_dst.y += ssfn.ssfn_src.*.height; // Move one line down, (new line)
     ssfn_dst.x = 0; // and reset to left side of screen (carrige return)
 }
@@ -111,7 +141,6 @@ pub fn kernel_log_fn(comptime level: std.log.Level, comptime scope: @TypeOf(.Enu
         const fmt_string: []u8 = std.fmt.bufPrint(&print_buffer, prefix ++ format, args) catch unreachable;
         print_buffer[fmt_string.len] = 0;
 
-        // render_fixed(fmt_string);
         render_scroll(fmt_string);
     }
 
