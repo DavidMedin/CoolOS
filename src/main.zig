@@ -48,32 +48,22 @@ pub export fn kernel_main(mbi : *multiboot.MBI) callconv(.C) void {
     // Specifically, the framebuffer. Or die if it doesn't work.
     multiboot.parse_multiboot_info(mbi) catch unreachable;
 
+    var keyboard : *ps2.PS2Controller = ps2.init();
+
     text.init_printing();
 
     // Write to the screen!
     std.log.debug("Hello!", .{});
     std.log.err("Has something gone bad? Who knows?",.{});
-    std.log.info("ps2 data vvvv", .{});
 
-    var keyboard = ps2.Keyboard.init(.ScancodeSet1, .Us104Key, .MapLettersToUnicode);
     while(true) {
-        if( ps2.poll() ) |data| {
-            const byte = @as(u8,@truncate(data));
 
-            if ( keyboard.addByte(byte) ) |kv| {
-                if(kv == null) {continue;}
-                if ( kv.?.state == .Down ) {
-                    if ( keyboard.processKeyevent(kv.?) ) |dk| {
-                        const rest_of_str = text.render_char_from_string(@constCast( dk.Unicode ));
-                        if(rest_of_str != null){
-                            @panic("this should be null :|");
-                        }
-                    }
-                }
-            }else |e| {
-                std.log.err("ps2 decoding failed : {}", .{e});
+        const poll_res = keyboard.poll() catch unreachable;
+        if(poll_res) |keycode| {
+            const cursor = text.render_char_from_string(@constCast( keycode.Unicode ));
+            if(cursor != null) {
+                @panic("this should be null");
             }
-
         }
 
     }
