@@ -56,19 +56,28 @@ pub export fn kernel_main(mbi : *multiboot.MBI) callconv(.C) void {
     std.log.debug("Hello!", .{});
     std.log.err("Has something gone bad? Who knows?",.{});
 
+    // TODO: PS2 interrupts.
     while(true) {
 
         const poll_res = keyboard.poll() catch {
             text.render_scroll(@constCast("wack"));
             continue;
         };
+
         if(poll_res) |keycode| {
-            const cursor = text.render_char_from_string(@constCast( keycode.Unicode ));
-            if(cursor != null) {
-                @panic("this should be null");
+            // There was something available this loop!
+            switch(keycode) {
+                .Unicode => |code| {
+                        const cursor = text.render_char_from_string(@constCast(code));
+                        if(cursor != null) {
+                            @panic("Cursor was not null. tried printing more than one character?");
+                        }
+                },
+                .RawKey => |key| {
+                    std.log.info("{} was pressed!", .{key});
+                }
             }
         }
-
     }
 
 

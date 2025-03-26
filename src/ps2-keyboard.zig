@@ -2,6 +2,8 @@
 extern fn in_fn(port : u16) u32;
 extern fn out_fn(port : u16, data : u32) void;
 
+const std = @import("std");
+
 const keycodes = @import("third-party/ps2-keyboard/src/pc_keyboard.zig");
 pub usingnamespace keycodes;
 
@@ -35,12 +37,12 @@ const StatusRegister = packed struct(u32) {
 };
 
 // Non-blocking poll.
-fn raw_poll() ?u32 {
+fn raw_poll() ?[4]u8 {
     // poll if there is data to grab.
     const recv : StatusRegister = @bitCast(in_fn(0x64));
     if (recv.output_buffer_full) {
         const data : u32 = in_fn(0x60);
-        return data;
+        return @bitCast( data );
     }
     return null; // no data to return.
 }
@@ -50,11 +52,23 @@ pub const PS2Controller = struct {
 
     const Self = @This();
     pub fn poll(self : *Self) !?keycodes.DecodedKey {
-        const byte : u8 = @as(u8, @truncate(
-            raw_poll() orelse return null
-        ));
+        const EXTEND_BYTE : u8 = 0xE0;
 
-       const key_event = try self.*.keyboard_desc.addByte(byte) orelse return null; // Parse the bytestream from the ps2 controller.
+        // All 4 bytes read in from the PS2 device.
+        // If 'a' was pressed, there is a one byte message, but all of the 4 bytes repeat the one byte.
+        const full_msg : [4]u8 = raw_poll() orelse return null;
+
+        // This is under the assumption that all multi-byte messages start with the 'extend byte' (0xe0),
+        // and the next byte is the real message.
+
+        //     return null if was the extend byte--vvvvvvv
+        const key_event = try self.*.keyboard_desc.addByte(full_msg[0]) orelse extend: {
+            if ( full_msg[0] == EXTEND_BYTE ) {
+                break :extend try self.*.keyboard_desc.addByte(full_msg[1]) orelse return null; // Parse the bytestream from the ps2 controller.
+            }
+            unreachable; // Sanity check.
+        };
+
        const decoded_key = self.*.keyboard_desc.processKeyevent(key_event) orelse return null; // Figure out if what key is pressed, and if ctrl and such are active.
        return decoded_key;
     }
