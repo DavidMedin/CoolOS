@@ -1,7 +1,6 @@
 const std = @import("std");
-const pretty = @import("pretty");
 
-// Rendering to the screen.
+// Rendering text to the screen.
 
 pub const ssfn = @cImport({
     @cDefine("SSFN_MAXLINES", "4096");
@@ -116,37 +115,4 @@ pub fn render_scroll(string : []u8) void {
     ssfn_dst.y -= @intCast( lines_needed * line_height_px );
 
     render_fixed(string);
-}
-
-// Formatting and std.log logging.
-
-var print_buffer = [_]u8{0} ** 0x10000;
-
-// This allocator uses the print_buffer too.
-var GLOBAL_FBA : ?std.heap.FixedBufferAllocator = null;
-pub var GLOBAL_ALLOCATOR: ?std.mem.Allocator = null;
-
-// Defines how std.log.error, std.log.debug, and friends function.
-// In the Cool OS kernel code, it should only be referenced by std_options in main.zig.
-pub fn kernel_log_fn(comptime level: std.log.Level, comptime scope: @TypeOf(.EnumLiteral), comptime format: []const u8, args: anytype) void {
-        _ = scope;
-
-        const prefix = "[" ++ comptime level.asText() ++ "] ";
-        const fmt_string: []u8 = std.fmt.bufPrint(&print_buffer, prefix ++ format, args) catch unreachable;
-        print_buffer[fmt_string.len] = 0;
-
-        render_scroll(fmt_string);
-    }
-
-
-// Takes any object and returns it formatted as a string.
-// Just a simpler call to pretty.dump.
-pub inline fn format_object(val : anytype) ![]u8 {
-    return pretty.dump(GLOBAL_ALLOCATOR.?, val, .{} );
-}
-
-pub fn init_printing() void {
-    // setup printing for the 'pretty' package. It needs a allocator.
-    GLOBAL_FBA = std.heap.FixedBufferAllocator.init(&print_buffer);
-    GLOBAL_ALLOCATOR = GLOBAL_FBA.?.allocator();
 }

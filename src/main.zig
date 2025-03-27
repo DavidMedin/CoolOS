@@ -15,7 +15,7 @@
 
 // https://github.com/cfenollosa/os-tutorial
 const std = @import("std");
-const text = @import("text.zig");
+const logging = @import("logging.zig");
 const multiboot = @import("multiboot.zig");
 const pci = @import("pci.zig");
 const ps2 = @import("ps2-keyboard.zig");
@@ -36,7 +36,11 @@ pub fn panic(msg: []const u8, error_return_trace: ?*std.builtin.StackTrace, some
 // Tells the Zig Standard Library that std.log.[debug, err, info,...] should use kernel_log_fn for printing.
 // It has to be in main.zig :(
 pub const std_options : std.Options = .{
-    .logFn = text.kernel_log_fn
+    .logFn = logging.kernel_log_fn,
+    .log_scope_levels = [_]std.log.ScopeLevel{
+        .{ .scope = .default, .level = .debug }, // Should be the zig provided scope.
+        .{ .scope = .pci, .level = .pci }, // as an example (prob not actually used.)
+    }
 };
 
 export var base_address : u32 = 0; // bad.
@@ -48,19 +52,26 @@ pub export fn kernel_main(mbi : *multiboot.MBI) callconv(.C) void {
     // Specifically, the framebuffer. Or die if it doesn't work.
     multiboot.parse_multiboot_info(mbi) catch unreachable;
 
-    var keyboard : *ps2.PS2Controller = ps2.init();
 
-    text.init_printing();
+    logging.init_printing();
 
     // Write to the screen!
     std.log.debug("Hello!", .{});
     std.log.err("Has something gone bad? Who knows?",.{});
 
+
+    keyboard_input_task();
+
+
+}
+
+fn keyboard_input_task() noreturn {
+    var keyboard : *ps2.PS2Controller = ps2.init();
     // TODO: PS2 interrupts.
     while(true) {
 
         const poll_res = keyboard.poll() catch {
-            text.render_scroll(@constCast("wack"));
+            logging.render_scroll(@constCast("wack"));
             continue;
         };
 
@@ -68,7 +79,7 @@ pub export fn kernel_main(mbi : *multiboot.MBI) callconv(.C) void {
             // There was something available this loop!
             switch(keycode) {
                 .Unicode => |code| {
-                        const cursor = text.render_char_from_string(@constCast(code));
+                        const cursor = logging.render_char_from_string(@constCast(code));
                         if(cursor != null) {
                             @panic("Cursor was not null. tried printing more than one character?");
                         }
@@ -79,6 +90,4 @@ pub export fn kernel_main(mbi : *multiboot.MBI) callconv(.C) void {
             }
         }
     }
-
-
 }
