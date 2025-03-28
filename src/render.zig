@@ -18,6 +18,16 @@ export var ssfn_src : *ssfn.ssfn_font_t = @ptrCast( @constCast( @embedFile("reso
 // SFN Docs are wrong, ssfn_dist is a ssfn_buf_t, not a *ssfn_buf_t!
 export var ssfn_dst : ssfn.ssfn_buf_t = undefined;
 
+pub fn reset_render_cursor() void {
+    ssfn_dst.x = 0;
+    ssfn_dst.y = 0;
+}
+
+pub fn newline() void {
+    ssfn_dst.y += ssfn_src.*.height;
+    ssfn_dst.x = 0;
+}
+
 /// Render one codepoint from the given string.
 /// Returns a slice that contains the rest of the string after the first codepoint.
 /// Returns null if ended the string.

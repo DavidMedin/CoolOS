@@ -1,4 +1,4 @@
-const text = @import("text.zig");
+const render = @import("render.zig");
 
 pub const MBI = struct {
     total_size : u32, // Total size of everything.
@@ -129,7 +129,7 @@ pub fn parse_multiboot_info(mbi : *MBI) MBErr!void {
     if(fb_info_maybe) |fb_info| {
 
         // Frame buffer to ssfn dest.
-        text.ssfn_dst = .{
+        render.ssfn_dst = .{
             // Pointer to the beginning of the framebuffer.
             .ptr = @ptrFromInt( @as(usize, @intCast( fb_info.*.fmbuff_addr ) ) ),
 

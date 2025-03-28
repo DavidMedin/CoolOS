@@ -37,9 +37,9 @@ pub fn panic(msg: []const u8, error_return_trace: ?*std.builtin.StackTrace, some
 // It has to be in main.zig :(
 pub const std_options : std.Options = .{
     .logFn = logging.kernel_log_fn,
-    .log_scope_levels = [_]std.log.ScopeLevel{
+    .log_scope_levels = &[_]std.log.ScopeLevel{
         .{ .scope = .default, .level = .debug }, // Should be the zig provided scope.
-        .{ .scope = .pci, .level = .pci }, // as an example (prob not actually used.)
+        // .{ .scope = .pci, .level = .pci }, // as an example (prob not actually used.)
     }
 };
 
@@ -71,7 +71,7 @@ fn keyboard_input_task() noreturn {
     while(true) {
 
         const poll_res = keyboard.poll() catch {
-            logging.render_scroll(@constCast("wack"));
+            std.log.warn("wack",.{});
             continue;
         };
 
@@ -79,10 +79,12 @@ fn keyboard_input_task() noreturn {
             // There was something available this loop!
             switch(keycode) {
                 .Unicode => |code| {
-                        const cursor = logging.render_char_from_string(@constCast(code));
-                        if(cursor != null) {
-                            @panic("Cursor was not null. tried printing more than one character?");
-                        }
+                        // const cursor = logging.render_char_from_string(@constCast(code));
+                        // if(cursor != null) {
+                        //     @panic("Cursor was not null. tried printing more than one character?");
+                        // }
+                        logging.global_print_buffer.add_log(@constCast(code));
+                        logging.global_print_buffer.render_buffer();
                 },
                 .RawKey => |key| {
                     std.log.info("{} was pressed!", .{key});
