@@ -16,6 +16,7 @@
 // https://github.com/cfenollosa/os-tutorial
 const std = @import("std");
 const logging = @import("logging.zig");
+const render = @import("render.zig");
 const multiboot = @import("multiboot.zig");
 const pci = @import("pci.zig");
 const ps2 = @import("ps2-keyboard.zig");
@@ -52,13 +53,18 @@ pub export fn kernel_main(mbi : *multiboot.MBI) callconv(.C) void {
     // Specifically, the framebuffer. Or die if it doesn't work.
     multiboot.parse_multiboot_info(mbi) catch unreachable;
 
-
     logging.init_printing();
+    // const framebuffer_size = render.get_framebuffer_dims();
+    // const glyph_size = render.get_glyph_dims();
+    // std.log.info("Framebuffer size : {}x{}",.{framebuffer_size[0]/glyph_size[0], framebuffer_size[1]/glyph_size[1]});
 
     // Write to the screen!
-    std.log.debug("Hello!", .{});
-    std.log.err("Has something gone bad? Who knows?",.{});
+    // std.log.debug("Hello!", .{});
+    // std.log.err("Has something gone bad? Who knows?",.{});
 
+    for (0..101) |i| {
+        std.log.info("line : {} ({})", .{i, logging.global_print_buffer.scroll});
+    }
 
     keyboard_input_task();
 

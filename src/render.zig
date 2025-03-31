@@ -18,6 +18,13 @@ export var ssfn_src : *ssfn.ssfn_font_t = @ptrCast( @constCast( @embedFile("reso
 // SFN Docs are wrong, ssfn_dist is a ssfn_buf_t, not a *ssfn_buf_t!
 export var ssfn_dst : ssfn.ssfn_buf_t = undefined;
 
+pub fn get_glyph_dims() [2]u32 {
+    return [_]u32{@intCast(ssfn_src.width), @intCast(ssfn_src.height)};
+}
+pub fn get_framebuffer_dims() [2]u32 {
+    return [_]u32{@intCast(ssfn_dst.w), @intCast(ssfn_dst.h)};
+}
+
 pub fn reset_render_cursor() void {
     ssfn_dst.x = 0;
     ssfn_dst.y = 0;
@@ -125,4 +132,10 @@ pub fn render_scroll(string : []u8) void {
     ssfn_dst.y -= @intCast( lines_needed * line_height_px );
 
     render_fixed(string);
+}
+
+pub fn clear_screen() void {
+    const framebuffer_length_bytes : usize =@intCast( ssfn_dst.p * ssfn_dst.h );
+    const framebuffer_dst : []u8 = ssfn_dst.ptr[0..framebuffer_length_bytes];
+    @memset(framebuffer_dst, 0);
 }

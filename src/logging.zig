@@ -24,13 +24,15 @@ pub fn TextBuffer(width : usize, height : usize) type {
         width : usize = width,
         height : usize = height,
         scroll : usize, // the index of the first line to be rendered.
+        y_scroll_at : usize,
         cursor : [2]usize,
         buffer : [width*height]u8 = [_]u8{0} ** (width*height), // Only 1 byte per character :( [likely only ascii]
         const Self = @This();
-        pub fn new() Self{
+        pub fn new(y_scroll_at : usize) Self{
             return .{
                 .scroll = 0,
                 .cursor = [2]usize{0,0},
+                .y_scroll_at = y_scroll_at,
             };
         }
         pub inline fn get_cursor_token(self : *Self) usize {
@@ -44,27 +46,34 @@ pub fn TextBuffer(width : usize, height : usize) type {
             const byte_offset = new_y + new_x;
             return byte_offset;
         }
+        pub fn newline(self : *Self) void {
+            self.cursor[0] = 0;
+            self.cursor[1] += 1;
+            if ( self.cursor[1]+self.scroll > self.y_scroll_at ){
+                self.scroll += 1;
+            }
+        }
         pub fn add_log(self : *Self, log : []u8) void {
-            var cursor : usize = self.*.get_cursor_token();
+            var cursor : usize = self.get_cursor_token();
 
             for (log) |char| {
                 if (char == 10) { // is a newline.
-                    self.*.cursor[0] = 0;
-                    self.*.cursor[1] += 1;
-                    cursor = self.*.get_cursor_token();
+                    self.newline();
+                    cursor = self.get_cursor_token();
                 }else { // not a newline.
-                    self.*.buffer[cursor] = char;
-                    self.*.cursor[0] += 1;
+                    self.buffer[cursor] = char;
+                    self.cursor[0] += 1;
                     cursor += 1; // this is what get_cursor_token() would effectivly yield.
                 }
             }
         }
         pub fn render_buffer(self : *Self) void {
             render.reset_render_cursor();
-            for (0..self.*.cursor[1]+1) |line_index| {
-                if(self.*.cursor[0] == 0 and line_index == self.*.cursor[1]) continue; // Don't render the most recent line if there isn't anything to render :)
+            render.clear_screen();
+            for (self.scroll..self.cursor[1]+1) |line_index| {
+                if(self.cursor[0] == 0 and line_index == self.cursor[1]) continue; // Don't render the most recent line if there isn't anything to render :)
                 const cursor = Self.get_token(0, line_index);
-                const line : []u8 = self.*.buffer[cursor..cursor + self.*.width];
+                const line : []u8 = self.buffer[cursor..cursor + self.width];
 
                 var line_cursor : []u8 = line;
 
@@ -79,7 +88,8 @@ pub fn TextBuffer(width : usize, height : usize) type {
 }
 
 // TODO: No more global prints!
-pub var global_print_buffer = TextBuffer(1000,1000).new();
+// [67,57]
+pub var global_print_buffer = TextBuffer(1000,1000).new(57);
 
 // Defines how std.log.error, std.log.debug, and friends function.
 // In the Cool OS kernel code, it should only be referenced by std_options in main.zig.
