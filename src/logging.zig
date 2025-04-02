@@ -49,7 +49,7 @@ pub fn TextBuffer(width : usize, height : usize) type {
         pub fn newline(self : *Self) void {
             self.cursor[0] = 0;
             self.cursor[1] += 1;
-            if ( self.cursor[1]+self.scroll > self.y_scroll_at ){
+            if ( self.cursor[1]+self.scroll >= self.y_scroll_at ){
                 self.scroll += 1;
             }
         }
@@ -97,7 +97,6 @@ pub fn kernel_log_fn(comptime level: std.log.Level, comptime scope: @TypeOf(.Enu
     _ = scope;
 
     const prefix = "[" ++ comptime level.asText() ++ "] ";
-    // const buffer_cursor : []u8 = global_print_buffer.get_cursor();
     const fmt_string: []u8 = std.fmt.bufPrint(&print_buffer, prefix ++ format, args) catch unreachable;
     print_buffer[fmt_string.len] = '\n';
     print_buffer[fmt_string.len+1] = 0;

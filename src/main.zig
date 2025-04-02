@@ -54,18 +54,18 @@ pub export fn kernel_main(mbi : *multiboot.MBI) callconv(.C) void {
     multiboot.parse_multiboot_info(mbi) catch unreachable;
 
     logging.init_printing();
-    // const framebuffer_size = render.get_framebuffer_dims();
-    // const glyph_size = render.get_glyph_dims();
-    // std.log.info("Framebuffer size : {}x{}",.{framebuffer_size[0]/glyph_size[0], framebuffer_size[1]/glyph_size[1]});
-
-    // Write to the screen!
-    // std.log.debug("Hello!", .{});
-    // std.log.err("Has something gone bad? Who knows?",.{});
-
-    for (0..101) |i| {
-        std.log.info("line : {} ({})", .{i, logging.global_print_buffer.scroll});
+    { // Not useful.
+        const framebuffer_size = render.get_framebuffer_dims();
+        const glyph_size = render.get_glyph_dims();
+        std.log.info("Framebuffer size : {}x{}",.{framebuffer_size[0]/glyph_size[0], framebuffer_size[1]/glyph_size[1]});
     }
 
+    // Write to the screen!
+    std.log.debug("Hello!", .{});
+    std.log.err("Has something gone bad? Who knows?",.{});
+
+
+    // THis is brokey when scrolled.
     keyboard_input_task();
 
 
@@ -85,10 +85,6 @@ fn keyboard_input_task() noreturn {
             // There was something available this loop!
             switch(keycode) {
                 .Unicode => |code| {
-                        // const cursor = logging.render_char_from_string(@constCast(code));
-                        // if(cursor != null) {
-                        //     @panic("Cursor was not null. tried printing more than one character?");
-                        // }
                         logging.global_print_buffer.add_log(@constCast(code));
                         logging.global_print_buffer.render_buffer();
                 },
