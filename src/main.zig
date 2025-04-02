@@ -64,8 +64,11 @@ pub export fn kernel_main(mbi : *multiboot.MBI) callconv(.C) void {
     std.log.debug("Hello!", .{});
     std.log.err("Has something gone bad? Who knows?",.{});
 
+    // for (0..101) |i| {
+    //     std.log.debug("Hello : {}", .{i});
+    // }
 
-    // THis is brokey when scrolled.
+
     keyboard_input_task();
 
 
@@ -89,7 +92,35 @@ fn keyboard_input_task() noreturn {
                         logging.global_print_buffer.render_buffer();
                 },
                 .RawKey => |key| {
-                    std.log.info("{} was pressed!", .{key});
+                    switch(key) {
+                        .ArrowUp => {
+                            logging.global_print_buffer.scroll_up(1);
+                            logging.global_print_buffer.render_buffer();
+                        },
+                        .ArrowDown => {
+                            logging.global_print_buffer.scroll_down(1);
+                            logging.global_print_buffer.render_buffer();
+                        },
+                        .PageUp=> {
+                            logging.global_print_buffer.page_up();
+                            logging.global_print_buffer.render_buffer();
+                        },
+                        .PageDown=> {
+                            logging.global_print_buffer.page_down();
+                            logging.global_print_buffer.render_buffer();
+                        },
+                        .Home => {
+                            logging.global_print_buffer.scroll_to_top();
+                            logging.global_print_buffer.render_buffer();
+                        },
+                        .End => {
+                            logging.global_print_buffer.scroll_to_bottom();
+                            logging.global_print_buffer.render_buffer();
+                        },
+                        else => {
+                            std.log.info("{} was pressed!", .{key});
+                        }
+                    }
                 }
             }
         }

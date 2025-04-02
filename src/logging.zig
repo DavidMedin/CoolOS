@@ -67,10 +67,45 @@ pub fn TextBuffer(width : usize, height : usize) type {
                 }
             }
         }
+        pub fn scroll_up(self: *Self, lines : usize) void {
+            const result, const underflow = @subWithOverflow(self.scroll, lines);
+            if(underflow == @intFromBool(true)) {
+                self.scroll = 0;
+            }else {
+                self.scroll = result;
+            }
+        }
+        pub fn scroll_down(self: *Self, lines : usize) void {
+            self.scroll += lines;
+        }
+
+        pub fn page_up(self: *Self) void {
+            const result, const underflow = @subWithOverflow(self.scroll, self.y_scroll_at);
+            if(underflow == @intFromBool(true)) {
+                self.scroll = 0;
+            }else {
+                self.scroll = result;
+            }
+        }
+        pub fn page_down(self: *Self) void {
+            self.scroll += self.y_scroll_at;
+        }
+        pub fn scroll_to_top(self: *Self) void {
+            self.scroll = 0;
+        }
+        pub fn scroll_to_bottom(self: *Self) void {
+            const result, const underflow = @subWithOverflow(self.cursor[1], self.y_scroll_at);
+            if(underflow == @intFromBool(true)){
+                self.scroll = 0;
+            }else {
+                self.scroll = result + 1;
+            }
+        }
         pub fn render_buffer(self : *Self) void {
             render.reset_render_cursor();
             render.clear_screen();
-            for (self.scroll..self.cursor[1]+1) |line_index| {
+            const render_until : usize = @min(self.cursor[1]+1, self.scroll+self.y_scroll_at);
+            for (self.scroll..render_until) |line_index| {
                 if(self.cursor[0] == 0 and line_index == self.cursor[1]) continue; // Don't render the most recent line if there isn't anything to render :)
                 const cursor = Self.get_token(0, line_index);
                 const line : []u8 = self.buffer[cursor..cursor + self.width];
