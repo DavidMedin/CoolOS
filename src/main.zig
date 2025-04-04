@@ -20,6 +20,7 @@ const render = @import("render.zig");
 const multiboot = @import("multiboot.zig");
 const pci = @import("pci.zig");
 const ps2 = @import("ps2-keyboard.zig");
+const window = @import("window.zig");
 
 // Defines what happens when Zig panics.
 // Panics happen when @panic() is 'called' or when the 'unreachable' keyword is reached.
@@ -51,13 +52,28 @@ pub export fn kernel_main(mbi : *multiboot.MBI) callconv(.C) void {
 
     // Parse the multiboot information.
     // Specifically, the framebuffer. Or die if it doesn't work.
-    multiboot.parse_multiboot_info(mbi) catch unreachable;
+    const multiboot_info = multiboot.parse_multiboot_info(mbi) catch unreachable;
+    const framebuffer = multiboot_info.frame;
+
+    const text_ctx = render.TextContext{
+        .pixelbuffer = framebuffer.buffer,
+        .pitch = framebuffer.pitch,
+        .width = framebuffer.width,
+        .height = framebuffer.height,
+        .fg_color = 0xeeeeeeee,
+        .bg_color = 0x0,
+    };
+    render.set_context(text_ctx);
+
+    const main_window = window.Window(1280,800);
+    _ = main_window;
 
     logging.init_printing();
     { // Not useful.
         const framebuffer_size = render.get_framebuffer_dims();
         const glyph_size = render.get_glyph_dims();
-        std.log.info("Framebuffer size : {}x{}",.{framebuffer_size[0]/glyph_size[0], framebuffer_size[1]/glyph_size[1]});
+        std.log.info("Framebuffer size : {}x{}",.{framebuffer_size[0], framebuffer_size[1]});
+        std.log.info("Textbuffer size : {}x{}",.{framebuffer_size[0]/glyph_size[0], framebuffer_size[1]/glyph_size[1]});
     }
 
     // Write to the screen!

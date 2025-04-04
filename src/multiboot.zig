@@ -1,4 +1,4 @@
-const render = @import("render.zig");
+const window = @import("window.zig");
 
 pub const MBI = struct {
     total_size : u32, // Total size of everything.
@@ -88,14 +88,18 @@ fn align_to(input : *usize, alignment : u32) void {
     input.* += ( alignment - (input.* % alignment) ) % alignment;
 }
 
-export var MBI_info = [_]u32{0} ** 3000; // Also bad.
+export var MBI_info = [_]u32{0} ** 3000; // TODO: Also bad.
 export var MBI_end : u32 = 0;
 
 pub const MBErr = error {
     NoFramebuffer
 };
 
-pub fn parse_multiboot_info(mbi : *MBI) MBErr!void {
+pub const MultibootInfo = struct {
+    frame : window.FrameBuffer
+};
+
+pub fn parse_multiboot_info(mbi : *MBI) MBErr!MultibootInfo {
 
     var tag_head : *TagHeader = @ptrFromInt( @intFromPtr(mbi) + @sizeOf(MBI) );
     var tag_addr : u32 = @intFromPtr(tag_head);
@@ -126,33 +130,27 @@ pub fn parse_multiboot_info(mbi : *MBI) MBErr!void {
     }
     // Done looking for tags, now so stuff with these tags.
 
+    var frame : ?window.FrameBuffer = null;
     if(fb_info_maybe) |fb_info| {
 
-        // Frame buffer to ssfn dest.
-        render.ssfn_dst = .{
-            // Pointer to the beginning of the framebuffer.
-            .ptr = @ptrFromInt( @as(usize, @intCast( fb_info.*.fmbuff_addr ) ) ),
-
-            // Pitch : number of bytes in each row.
-            .p = @intCast( fb_info.*.fmbuff_pitch ),
-
-            // Width : pixels in each row.
-            .w = @intCast( fb_info.*.fmbuff_width ),
-
-            // Height : pixels in each column.
-            .h = @intCast( fb_info.*.fmbuff_height ),
-
-            // Colors.
-            .fg = 0xeeeeeeee,
-            .bg = 0x0,
-
-            // Where to render the next character?
-            .x = @intCast( 0 ),
-            .y = @intCast( 0 )
+        const pitch = fb_info.*.fmbuff_pitch;
+        const width = fb_info.*.fmbuff_width;
+        const height = fb_info.*.fmbuff_height;
+        const buffer_size = pitch * height;
+        const mult_item_buff : [*]u8 = @ptrFromInt( @as(usize, @intCast( fb_info.*.fmbuff_addr ) ) );
+        frame = window.FrameBuffer{
+            .buffer = mult_item_buff[ 0..buffer_size ],
+            .pitch = pitch,
+            .width = width,
+            .height = height
         };
-
 
     }else {
         return MBErr.NoFramebuffer;
     }
+
+    const info = MultibootInfo{
+        .frame = frame.?
+    };
+    return info;
 }

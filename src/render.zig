@@ -2,7 +2,7 @@ const std = @import("std");
 
 // Rendering text to the screen.
 
-pub const ssfn = @cImport({
+const ssfn = @cImport({
     @cDefine("SSFN_MAXLINES", "4096");
     //SSFN_CONSOLEBITMAP_PALETTE
     @cDefine("SSFN_CONSOLEBITMAP_TRUECOLOR", {});
@@ -11,28 +11,57 @@ pub const ssfn = @cImport({
 });
 
 // Allows 'text.ssfn_putc' in other files, instead of `text.ssfn.ssfn_putc'.
-pub usingnamespace ssfn;
+// pub usingnamespace ssfn;
 
 export var ssfn_src : *ssfn.ssfn_font_t = @ptrCast( @constCast( @embedFile("resources/fonts/lanapixel.sfn" ) ) );
 
-// SFN Docs are wrong, ssfn_dist is a ssfn_buf_t, not a *ssfn_buf_t!
+/// SFN Docs are wrong, ssfn_dist is a ssfn_buf_t, not a *ssfn_buf_t!
 export var ssfn_dst : ssfn.ssfn_buf_t = undefined;
 
-pub fn get_glyph_dims() [2]u32 {
+pub const TextContext = struct {
+    pixelbuffer : []u8,
+    pitch : u32, // number of bytes per row
+    width : u32,
+    height : u32,
+    fg_color : u32,
+    bg_color : u32,
+};
+pub fn set_context(ctx : TextContext) void {
+    ssfn_dst = .{
+        .ptr = @ptrCast( ctx.pixelbuffer.ptr ),
+        .p = @intCast( ctx.pitch ),
+        .w = @intCast( ctx.width ),
+        .h = @intCast( ctx.height ),
+        .fg = @intCast( ctx.fg_color ),
+        .bg = @intCast( ctx.bg_color ),
+        .x = 0,
+        .y = 0
+    };
+}
+
+pub inline fn get_glyph_dims() [2]u32 {
     return [_]u32{@intCast(ssfn_src.width), @intCast(ssfn_src.height)};
 }
-pub fn get_framebuffer_dims() [2]u32 {
+pub inline fn get_framebuffer_dims() [2]u32 {
     return [_]u32{@intCast(ssfn_dst.w), @intCast(ssfn_dst.h)};
 }
 
-pub fn reset_render_cursor() void {
+pub inline fn reset_render_cursor() void {
     ssfn_dst.x = 0;
     ssfn_dst.y = 0;
 }
 
-pub fn newline() void {
-    ssfn_dst.y += ssfn_src.*.height;
-    ssfn_dst.x = 0;
+pub inline fn set_cursor(x : u32, y : u32) void {
+    ssfn_dst.x = @intCast(x);
+    ssfn_dst.y = @intCast(y);
+}
+pub inline fn get_cursor() [2]u32 {
+    return [2]u32{ @intCast(ssfn_dst.x), @intCast(ssfn_dst.y) };
+}
+
+pub inline fn newline() void {
+    ssfn_dst.y += ssfn_src.*.height; // Move one line down, (new line)
+    ssfn_dst.x = 0; // and reset to left side of screen (carrige return)
 }
 
 /// Render one codepoint from the given string.
@@ -46,8 +75,7 @@ pub fn render_char_from_string(string : []u8) ?[]u8 {
     // If newline
     if(codepoint == 10) { // TODO: render a x10 glyph instead?
 
-        ssfn_dst.y += ssfn_src.*.height; // Move one line down, (new line)
-        ssfn_dst.x = 0; // and reset to left side of screen (carrige return)
+        newline();
 
     }else {
 
@@ -81,8 +109,7 @@ fn render_fixed(string : []u8) void {
         cursor = new_cursor;
     }
 
-    ssfn_dst.y += ssfn.ssfn_src.*.height; // Move one line down, (new line)
-    ssfn_dst.x = 0; // and reset to left side of screen (carrige return)
+    newline();
 }
 
 
